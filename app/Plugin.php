@@ -6,6 +6,16 @@ use SerbenConnect\Shortcodes\AppShortcode;
 use SerbenConnect\Shortcodes\LookupShortcode;
 use SerbenConnect\Shortcodes\RegisterShortcode;
 use SerbenConnect\Shortcodes\LoginShortcode;
+use SerbenConnect\Shortcodes\RegisterSubmitShortcode;
+use SerbenConnect\Registration\RegistrationController;
+use SerbenConnect\Components\ComponentRegistry;
+use SerbenConnect\Components\ShortcodeRegistry;
+use SerbenConnect\Shortcodes\AccountShortcodes;
+use SerbenConnect\Actions\RefreshMemberAction;
+use SerbenConnect\Integrations\WooCommerce\PlanProductSync;
+use SerbenConnect\Shortcodes\DependentSubmitShortcode;
+use SerbenConnect\Dependents\RegistrationController as DependentRegistrationController;
+use SerbenConnect\Core\Upgrader;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -38,6 +48,7 @@ final class Plugin
             'debug' => '1',
             'show_technical_front' => '0',
             'enable_cpf_login' => '1',
+            'cache_ttl' => '600',
         ]);
     }
 
@@ -48,16 +59,27 @@ final class Plugin
 
     public function boot(): void
     {
+        Upgrader::maybeUpgrade();
         (new Admin())->register();
         (new LookupShortcode())->register();
         (new RegisterShortcode())->register();
         (new LoginShortcode())->register();
         (new AppShortcode())->register();
+        (new RegisterSubmitShortcode())->register();
+        (new RegistrationController())->register();
+        (new AccountShortcodes())->register();
+        (new RefreshMemberAction())->register();
+        (new PlanProductSync())->register();
+        (new DependentSubmitShortcode())->register();
+        (new DependentRegistrationController())->register();
+        (new ShortcodeRegistry(new ComponentRegistry()))->register();
         add_action('wp_enqueue_scripts', [$this, 'enqueueAssets']);
     }
 
     public function enqueueAssets(): void
     {
         wp_register_style('serben-connect', SERBEN_CONNECT_URL . 'assets/css/serben-connect.css', [], SERBEN_CONNECT_VERSION);
+        wp_register_script('serben-register-submit', SERBEN_CONNECT_URL . 'assets/js/serben-register-submit.js', [], SERBEN_CONNECT_VERSION, true);
+        wp_register_script('serben-dependent-submit', SERBEN_CONNECT_URL . 'assets/js/serben-dependent-submit.js', [], SERBEN_CONNECT_VERSION, true);
     }
 }

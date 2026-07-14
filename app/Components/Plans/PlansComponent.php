@@ -1,0 +1,5 @@
+<?php
+namespace SerbenConnect\Components\Plans;
+use SerbenConnect\Components\BaseComponent;use SerbenConnect\Domain\Member;use SerbenConnect\Providers\PlansProvider;
+if(!defined('ABSPATH'))exit;
+class PlansComponent extends BaseComponent{protected $shortcode='serben_plans';protected $title='Planos';protected $category='Planos';protected $description='Lista os planos disponíveis da unidade.';public function render(Member$m,array$a=[]):string{$items=(new PlansProvider())->all()['items']??[];if(!$items)return'<span class="serben-component-empty">Nenhum plano disponível.</span>';$h='<div class="serben-list">';foreach($items as$p){$n=$p['nomePlano']??$p['nome_plano']??$p['nome']??'Plano';$v=$p['valor_por_titular_em_centavos']??$p['valor']??null;$desc=$p['descricao_plano']??$p['descricao']??'';$h.='<article class="serben-list-card"><strong>'.esc_html($n).'</strong>';if(is_numeric($v))$h.='<span>'.esc_html('R$ '.number_format(((float)$v)/100,2,',','.')).'</span>';if($desc)$h.='<small>'.esc_html($desc).'</small>';$h.='</article>';}$h.='</div>';return$h;}}

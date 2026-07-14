@@ -39,6 +39,7 @@ class Client
 
         if ($sendIdentifier) {
             $headers['IDENTIFIER'] = (string)($settings['identifier'] ?? '');
+            $headers['identifier'] = (string)($settings['identifier'] ?? '');
         }
 
         $args = [
@@ -61,6 +62,9 @@ class Client
         }
         if (!empty($safeHeaders['IDENTIFIER'])) {
             $safeHeaders['IDENTIFIER'] = '***';
+        }
+        if (!empty($safeHeaders['identifier'])) {
+            $safeHeaders['identifier'] = '***';
         }
 
         $context = [

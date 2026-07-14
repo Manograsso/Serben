@@ -29,6 +29,74 @@ class ClientesService
         ], true);
     }
 
+
+    public function buscarSaldoPorDocumento(string $cpf): array
+    {
+        $cpf = preg_replace('/\D+/', '', $cpf);
+        $idLoja = Settings::get('id_loja');
+
+        if (!$cpf) {
+            return ['ok' => false, 'code' => 0, 'body' => null, 'raw' => 'CPF vazio.', 'url' => ''];
+        }
+
+        $query = ['documento' => $cpf];
+        if ($idLoja !== '') {
+            $query['idLoja'] = $idLoja;
+        }
+
+        return $this->client->get('Clientes/byDocumento', $query, true);
+    }
+
+    public function extractSaldo(array $result): array
+    {
+        if (empty($result['ok']) || !is_array($result['body'])) {
+            return [];
+        }
+
+        $body = $result['body'];
+        $paths = [
+            ['data', 'saldo'],
+            ['data', 'saldos'],
+            ['data', 'cliente'],
+            ['data', 'clientes', 0],
+            ['data', 0],
+            ['data'],
+            ['saldo'],
+            ['saldos'],
+        ];
+
+        foreach ($paths as $path) {
+            $value = $body;
+            foreach ($path as $key) {
+                if (is_array($value) && array_key_exists($key, $value)) {
+                    $value = $value[$key];
+                } else {
+                    $value = null;
+                    break;
+                }
+            }
+            if (is_array($value) && !empty($value)) {
+                return $value;
+            }
+        }
+
+        return is_array($body) ? $body : [];
+    }
+
+    public function hasClubData(array $body): bool
+    {
+        if (isset($body['statusRetorno'])) {
+            return (int) $body['statusRetorno'] === 1;
+        }
+        $keys = ['saldo_pontos', 'saldo_cashback', 'numero_cartao', 'status_cartao', 'pontos', 'cashback', 'saldos_portador', 'todos_cartoes_aceitos_nessa_loja'];
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $body) && $body[$key] !== null && $body[$key] !== '') {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Tentativa opcional para dados de portador. Algumas chaves/IDENTIFIER podem não ter permissão.
      */
