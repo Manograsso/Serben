@@ -16,6 +16,8 @@ use SerbenConnect\Integrations\WooCommerce\PlanProductSync;
 use SerbenConnect\Shortcodes\DependentSubmitShortcode;
 use SerbenConnect\Dependents\RegistrationController as DependentRegistrationController;
 use SerbenConnect\Core\Upgrader;
+use SerbenConnect\Identity\Roles;
+use SerbenConnect\Shortcodes\PartnerLoginShortcode;
 use SerbenConnect\Integrations\Elementor\ElementorIntegration;
 
 if (!defined('ABSPATH')) {
@@ -36,6 +38,7 @@ final class Plugin
 
     public static function activate(): void
     {
+        Roles::register();
         add_option('serben_connect_version', SERBEN_CONNECT_VERSION);
         add_option('serben_connect_settings', [
             'base_url' => 'https://serben.conectar.site',
@@ -60,11 +63,13 @@ final class Plugin
 
     public function boot(): void
     {
+        Roles::register();
         Upgrader::maybeUpgrade();
         (new Admin())->register();
         (new LookupShortcode())->register();
         (new RegisterShortcode())->register();
         (new LoginShortcode())->register();
+        (new PartnerLoginShortcode())->register();
         (new AppShortcode())->register();
         (new RegisterSubmitShortcode())->register();
         (new RegistrationController())->register();

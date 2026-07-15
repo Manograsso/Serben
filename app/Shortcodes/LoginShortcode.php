@@ -25,7 +25,7 @@ class LoginShortcode
         }
 
         $html = '<div class="serben-box serben-login"><h3>Entrar na Área do Associado</h3>';
-        $html .= '<p class="serben-muted">Use o CPF cadastrado no app Clube Serben. No primeiro acesso ao site, crie uma senha para o seu usuário WordPress.</p>';
+        $html .= '<p class="serben-muted">Use o CPF ou CNPJ cadastrado no app Clube Serben. No primeiro acesso ao site, crie uma senha para o seu usuário WordPress.</p>';
 
         if ($this->isLoginSubmitted()) {
             $cpf = preg_replace('/\D+/', '', (string) wp_unslash($_POST['serben_login_cpf'] ?? ''));
@@ -62,7 +62,7 @@ class LoginShortcode
         $html = '<div class="serben-panel"><h4>Já tenho acesso</h4>';
         $html .= '<form method="post" class="serben-form">';
         $html .= wp_nonce_field('serben_login', 'serben_login_nonce', true, false);
-        $html .= '<label>CPF<input type="text" name="serben_login_cpf" placeholder="Digite apenas números" inputmode="numeric" autocomplete="username" required></label>';
+        $html .= '<label>CPF ou CNPJ<input type="text" name="serben_login_cpf" placeholder="Digite apenas números" inputmode="numeric" autocomplete="username" required></label>';
         $html .= '<label>Senha<input type="password" name="serben_login_password" autocomplete="current-password" required></label>';
         $html .= '<button type="submit">Entrar</button>';
         $html .= '</form></div>';
@@ -73,10 +73,10 @@ class LoginShortcode
     {
         $prefill = isset($_GET['cpf']) ? preg_replace('/\D+/', '', (string) wp_unslash($_GET['cpf'])) : '';
         $html = '<div class="serben-panel"><h4>Primeiro acesso no site</h4>';
-        $html .= '<p class="serben-muted">Informe o CPF já cadastrado no app e crie uma senha para acessar o site.</p>';
+        $html .= '<p class="serben-muted">Informe o CPF ou CNPJ já cadastrado no app e crie uma senha para acessar o site.</p>';
         $html .= '<form method="post" class="serben-form">';
         $html .= wp_nonce_field('serben_first_access', 'serben_first_access_nonce', true, false);
-        $html .= '<label>CPF<input type="text" name="serben_first_cpf" value="' . esc_attr($prefill) . '" placeholder="Digite apenas números" inputmode="numeric" autocomplete="username" required></label>';
+        $html .= '<label>CPF ou CNPJ<input type="text" name="serben_first_cpf" value="' . esc_attr($prefill) . '" placeholder="Digite apenas números" inputmode="numeric" autocomplete="username" required></label>';
         $html .= '<label>Criar senha<input type="password" name="serben_first_password" autocomplete="new-password" minlength="6" required></label>';
         $html .= '<label>Confirmar senha<input type="password" name="serben_first_password_confirm" autocomplete="new-password" minlength="6" required></label>';
         $html .= '<button type="submit">Criar meu acesso</button>';

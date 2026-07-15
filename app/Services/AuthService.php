@@ -20,15 +20,15 @@ class AuthService
     {
         $cpf = $this->normalizeCpf($cpf);
 
-        if (strlen($cpf) !== 11 || $password === '') {
-            return ['ok' => false, 'message' => 'Informe CPF e senha.', 'user_id' => 0];
+        if (!in_array(strlen($cpf), [11,14], true) || $password === '') {
+            return ['ok' => false, 'message' => 'Informe CPF/CNPJ e senha.', 'user_id' => 0];
         }
 
         $user = $this->findUserByCpf($cpf);
         if (!$user) {
             $exists = $this->cpfExistsInApi($cpf);
             if ($exists['exists']) {
-                return ['ok' => false, 'message' => 'Este CPF existe no app, mas ainda não possui acesso no site. Use a opção Primeiro acesso para criar sua senha.', 'first_access' => true, 'api_result' => $exists['api_result'] ?? null];
+                return ['ok' => false, 'message' => 'Este CPF/CNPJ existe no app, mas ainda não possui acesso no site. Use a opção Primeiro acesso para criar sua senha.', 'first_access' => true, 'api_result' => $exists['api_result'] ?? null];
             }
             return $this->notFoundResult($cpf, $exists['api_result'] ?? null);
         }
@@ -47,8 +47,8 @@ class AuthService
     {
         $cpf = $this->normalizeCpf($cpf);
 
-        if (strlen($cpf) !== 11) {
-            return ['ok' => false, 'message' => 'Informe um CPF válido.', 'user_id' => 0];
+        if (!in_array(strlen($cpf), [11,14], true)) {
+            return ['ok' => false, 'message' => 'Informe um CPF ou CNPJ válido.', 'user_id' => 0];
         }
         if (strlen($password) < 6) {
             return ['ok' => false, 'message' => 'A senha precisa ter pelo menos 6 caracteres.', 'user_id' => 0];
@@ -59,7 +59,7 @@ class AuthService
 
         $existing = $this->findUserByCpf($cpf);
         if ($existing) {
-            return ['ok' => false, 'message' => 'Este CPF já possui acesso no site. Use a opção Já tenho acesso.', 'user_id' => $existing->ID];
+            return ['ok' => false, 'message' => 'Este CPF/CNPJ já possui acesso no site. Use a opção Já tenho acesso.', 'user_id' => $existing->ID];
         }
 
         $result = $this->clientes->buscarPorDocumento($cpf);
@@ -90,7 +90,7 @@ class AuthService
         }
         $user = $this->findUserByCpf($cpf);
         if (!$user) {
-            return ['ok' => false, 'message' => 'CPF localizado. Crie uma senha no Primeiro acesso.', 'first_access' => true, 'api_result' => $exists['api_result'] ?? null, 'user_id' => 0];
+            return ['ok' => false, 'message' => 'Documento localizado. Crie uma senha no Primeiro acesso.', 'first_access' => true, 'api_result' => $exists['api_result'] ?? null, 'user_id' => 0];
         }
         $this->authenticate((int) $user->ID);
         return ['ok' => true, 'message' => 'Login realizado.', 'user_id' => (int) $user->ID];
@@ -114,7 +114,16 @@ class AuthService
         if (!is_user_logged_in()) {
             return '';
         }
-        return (string) get_user_meta(get_current_user_id(), 'serben_cpf', true);
+        $userId = get_current_user_id();
+        $document = (string) get_user_meta($userId, 'serben_documento', true);
+        if ($document !== '') {
+            return $document;
+        }
+        $cpf = (string) get_user_meta($userId, 'serben_cpf', true);
+        if ($cpf !== '') {
+            return $cpf;
+        }
+        return (string) get_user_meta($userId, 'serben_cnpj', true);
     }
 
     public function refreshCurrentUserFromApi(): ?array
@@ -129,7 +138,7 @@ class AuthService
 
     private function cpfExistsInApi(string $cpf): array
     {
-        if (strlen($cpf) !== 11) {
+        if (!in_array(strlen($cpf), [11,14], true)) {
             return ['exists' => false, 'api_result' => null, 'cliente' => null];
         }
         $result = $this->clientes->buscarPorDocumento($cpf);
@@ -145,7 +154,7 @@ class AuthService
         }
         return [
             'ok' => false,
-            'message' => 'CPF não localizado no app Clube Serben. Faça seu cadastro para continuar.',
+            'message' => 'CPF/CNPJ não localizado no app Clube Serben. Faça seu cadastro para continuar.',
             'not_found' => true,
             'register_url' => $url,
             'api_result' => $apiResult,
@@ -155,15 +164,20 @@ class AuthService
 
     private function findUserByCpf(string $cpf): ?\WP_User
     {
-        $existing = get_users([
-            'meta_key' => 'serben_cpf',
-            'meta_value' => $cpf,
-            'number' => 1,
-            'fields' => 'all',
-        ]);
+        foreach (['serben_documento', 'serben_cpf', 'serben_cnpj'] as $metaKey) {
+            $existing = get_users([
+                'meta_key' => $metaKey,
+                'meta_value' => $cpf,
+                'number' => 1,
+                'fields' => 'all',
+            ]);
 
-        if (!empty($existing) && $existing[0] instanceof \WP_User) {
-            return $existing[0];
+            if (!empty($existing) && $existing[0] instanceof \WP_User) {
+                if ($metaKey !== 'serben_documento') {
+                    update_user_meta((int) $existing[0]->ID, 'serben_documento', $cpf);
+                }
+                return $existing[0];
+            }
         }
 
         $username = 'serben_' . $cpf;
@@ -175,13 +189,16 @@ class AuthService
     {
         $username = 'serben_' . $cpf;
         if (username_exists($username)) {
-            return new \WP_Error('serben_user_exists', 'Já existe um usuário WordPress para este CPF.');
+            return new \WP_Error('serben_user_exists', 'Já existe um usuário WordPress para este CPF/CNPJ.');
         }
 
         $email = $this->extractEmail($cliente);
         if ($email && email_exists($email)) {
             $userId = (int) email_exists($email);
-            update_user_meta($userId, 'serben_cpf', $cpf);
+            update_user_meta($userId, 'serben_cpf', strlen($cpf) === 11 ? $cpf : '');
+            update_user_meta($userId, 'serben_cnpj', strlen($cpf) === 14 ? $cpf : '');
+            update_user_meta($userId, 'serben_documento', $cpf);
+            update_user_meta($userId, 'serben_identity_type', strlen($cpf) === 14 ? 'company_customer' : 'member');
             wp_set_password($password, $userId);
             return $userId;
         }
@@ -198,7 +215,7 @@ class AuthService
             'user_email' => $email,
             'display_name' => $name ?: $cpf,
             'first_name' => $name,
-            'role' => 'subscriber',
+            'role' => strlen($cpf) === 14 ? 'serben_empresa_cliente' : 'serben_associado',
         ]);
     }
 
@@ -234,7 +251,10 @@ class AuthService
             wp_update_user($update);
         }
 
-        update_user_meta($userId, 'serben_cpf', $cpf);
+        update_user_meta($userId, 'serben_cpf', strlen($cpf) === 11 ? $cpf : '');
+        update_user_meta($userId, 'serben_cnpj', strlen($cpf) === 14 ? $cpf : '');
+        update_user_meta($userId, 'serben_documento', $cpf);
+        update_user_meta($userId, 'serben_identity_type', strlen($cpf) === 14 ? 'company_customer' : 'member');
         update_user_meta($userId, 'serben_cliente_data', wp_json_encode($cliente));
         update_user_meta($userId, 'serben_cliente_api_last_code', (string)($apiResult['code'] ?? ''));
         update_user_meta($userId, 'serben_cliente_api_last_url', (string)($apiResult['url'] ?? ''));
