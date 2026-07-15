@@ -2,7 +2,7 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 
 Integra o WordPress à API Clube Serben e oferece componentes modulares para associados, parceiros, planos, contratos, saldos, cadastro e dependentes.
