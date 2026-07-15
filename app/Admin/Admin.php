@@ -126,6 +126,7 @@ class Admin
                     <tr><th>IDENTIFIER</th><td><input class="regular-text" name="serben[identifier]" value="<?php echo esc_attr($s['identifier']); ?>"></td></tr>
                     <tr><th>ID Loja</th><td><input class="regular-text" name="serben[id_loja]" value="<?php echo esc_attr($s['id_loja']); ?>"><p class="description">Usado em consultas de saldo/pontos quando exigido pela API.</p></td></tr>
                     <tr><th>CNPJ Empresa</th><td><input class="regular-text" name="serben[cnpj_empresa]" value="<?php echo esc_attr($s['cnpj_empresa']); ?>"></td></tr>
+                    <tr><th>CNPJ do Credenciador</th><td><input class="regular-text" name="serben[cnpj_credenciador]" value="<?php echo esc_attr($s['cnpj_credenciador'] ?? ''); ?>"><p class="description">Usado para localizar lojas no login de parceiros.</p></td></tr>
                     <tr><th>Código padrão</th><td><input class="regular-text" name="serben[codigo]" value="<?php echo esc_attr($s['codigo']); ?>"></td></tr>
                     <tr><th>CPF de teste</th><td><input class="regular-text" name="serben[test_cpf]" value="<?php echo esc_attr($s['test_cpf']); ?>"></td></tr>
                     <tr><th>URL da página de cadastro</th><td><input class="regular-text" name="serben[register_page_url]" value="<?php echo esc_attr($s['register_page_url']); ?>"><p class="description">Página que contém <code>[serben_register]</code>. Será usada quando o CPF não existir no app.</p></td></tr>

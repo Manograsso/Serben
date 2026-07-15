@@ -19,6 +19,9 @@ use SerbenConnect\Core\Upgrader;
 use SerbenConnect\Identity\Roles;
 use SerbenConnect\Shortcodes\PartnerLoginShortcode;
 use SerbenConnect\Integrations\Elementor\ElementorIntegration;
+use SerbenConnect\Partners\Portal\PartnerPortal;
+use SerbenConnect\Partners\Permissions\PartnerPermissions;
+use SerbenConnect\Admin\PartnerLinksAdmin;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -70,6 +73,9 @@ final class Plugin
         (new RegisterShortcode())->register();
         (new LoginShortcode())->register();
         (new PartnerLoginShortcode())->register();
+        (new PartnerPortal())->register();
+        (new PartnerPermissions())->register();
+        (new PartnerLinksAdmin())->register();
         (new AppShortcode())->register();
         (new RegisterSubmitShortcode())->register();
         (new RegistrationController())->register();
