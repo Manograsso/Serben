@@ -2,10 +2,19 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 
 Integra o WordPress à API Clube Serben e oferece componentes modulares para associados, parceiros, planos, contratos, saldos, cadastro e dependentes.
+
+== Versão 1.2.0 ==
+
+* Login de clientes por CPF ou CNPJ.
+* Primeiro acesso e provisionamento automático de empresas clientes.
+* Login exclusivo de parceiros/lojistas por CNPJ.
+* Vínculo automático ao CPT de parceiros via `cnpj_do_parceiro`.
+* Novas roles para associado, empresa cliente e lojista.
+* Widgets Elementor da versão 1.1 preservados.
 
 
 == Versão 1.1.0 ==
