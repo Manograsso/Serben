@@ -16,6 +16,7 @@ use SerbenConnect\Integrations\WooCommerce\PlanProductSync;
 use SerbenConnect\Shortcodes\DependentSubmitShortcode;
 use SerbenConnect\Dependents\RegistrationController as DependentRegistrationController;
 use SerbenConnect\Core\Upgrader;
+use SerbenConnect\Integrations\Elementor\ElementorIntegration;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -72,6 +73,7 @@ final class Plugin
         (new PlanProductSync())->register();
         (new DependentSubmitShortcode())->register();
         (new DependentRegistrationController())->register();
+        (new ElementorIntegration())->register();
         (new ShortcodeRegistry(new ComponentRegistry()))->register();
         add_action('wp_enqueue_scripts', [$this, 'enqueueAssets']);
     }

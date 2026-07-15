@@ -2,10 +2,20 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 
 Integra o WordPress à API Clube Serben e oferece componentes modulares para associados, parceiros, planos, contratos, saldos, cadastro e dependentes.
+
+
+== Versão 1.1.0 ==
+
+* Categoria própria "Serben Connect" no Elementor.
+* 10 widgets nativos para associado e parceiros.
+* Widgets de nome, pontos, cashback, carteirinha digital e carteira.
+* Widgets de nome, logo, cashback, card e grade de parceiros.
+* Controles de conteúdo, ordenação, paginação, alinhamento, cor e tipografia.
+* Shortcodes existentes preservados como fallback.
 
 == Versão 1.0.0 ==
 
