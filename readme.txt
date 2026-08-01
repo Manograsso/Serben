@@ -2,10 +2,16 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.3.3
 License: GPLv2 or later
 
 Integra o WordPress à API Clube Serben e oferece componentes modulares para associados, parceiros, planos, contratos, saldos, cadastro e dependentes.
+
+== Versão 1.3.3 ==
+
+* Correção do mapeamento de saldo de Bumes/cashback (`saldo_cashback_liberado`).
+* Correção do mapeamento de pontos (`saldo_ponto_liberado`).
+* Suporte adicional a aliases de saldo e crédito.
 
 == Versão 1.3.1 ==
 
