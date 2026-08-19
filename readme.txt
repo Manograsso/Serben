@@ -2,7 +2,7 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.3.3
+Stable tag: 1.4.0
 License: GPLv2 or later
 
 Integra o WordPress à API Clube Serben e oferece componentes modulares para associados, parceiros, planos, contratos, saldos, cadastro e dependentes.
@@ -60,3 +60,8 @@ Integra o WordPress à API Clube Serben e oferece componentes modulares para ass
 3. Acesse Serben Connect > Configurações e confirme os dados da API.
 4. Confirme o CPT e as taxonomias de parceiros.
 5. Consulte Serben Connect > Ambiente para validar a instalação.
+
+
+== Versão 1.4.0 ==
+
+* Integração Awin para programas, ofertas, tracking por clickRef, transações e cashback Serben.
