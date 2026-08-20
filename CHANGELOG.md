@@ -1,3 +1,8 @@
+# 1.4.7
+- Sincronização Awin em lotes AJAX para evitar Gateway Timeout.
+- Progresso em tempo real no painel administrativo.
+- Processamento de 3 programas por requisição e finalização segura de status.
+
 # 1.4.6
 - Sincronização Awin em modo espelho: todo programa retornado é atualizado ou criado automaticamente.
 - Correspondência automática por Advertiser ID, domínio e nome normalizado.
