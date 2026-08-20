@@ -2,7 +2,7 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.4.5
 License: GPLv2 or later
 
 Integra o WordPress à API Clube Serben e oferece componentes modulares para associados, parceiros, planos, contratos, saldos, cadastro e dependentes.
@@ -61,6 +61,32 @@ Integra o WordPress à API Clube Serben e oferece componentes modulares para ass
 4. Confirme o CPT e as taxonomias de parceiros.
 5. Consulte Serben Connect > Ambiente para validar a instalação.
 
+
+
+
+
+== Versão 1.4.5 ==
+
+* Modo seguro de sincronização Awin: nenhuma criação automática quando o vínculo não estiver resolvido.
+* Painel de resolução manual de correspondência por Post ID.
+* Possibilidade de definir explicitamente o parceiro canônico por Advertiser ID.
+* Duplicados são movidos para rascunho e desvinculados sem exclusão de dados.
+* Novo parceiro só é criado após confirmação explícita do administrador.
+
+== Versão 1.4.4 ==
+
+* Botão universal `[serben_partner_link]` para templates de parceiros.
+* Parceiros Awin Active são publicados; estados não ativos são desativados como rascunho.
+* Parceiros Awin que deixam de constar nos programas joined são desativados na sincronização completa.
+* Sincronização diária automática de programas e status.
+* Parceiros sem vínculo Awin não têm status alterado.
+
+== Versão 1.4.1 ==
+
+* Sincronização seletiva de programas Awin por nome, Advertiser ID ou domínio.
+* Botão “Sincronizar este parceiro” para testes controlados.
+* Correspondência anti-duplicidade por Advertiser ID, domínio/site e nome normalizado.
+* Cache curto da lista de programas para reduzir chamadas à API Awin.
 
 == Versão 1.4.0 ==
 
