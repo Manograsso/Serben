@@ -1,3 +1,11 @@
+# 1.4.6
+- Sincronização Awin em modo espelho: todo programa retornado é atualizado ou criado automaticamente.
+- Correspondência automática por Advertiser ID, domínio e nome normalizado.
+- Quando há múltiplas correspondências fortes, preserva o post mais antigo como canônico e coloca duplicados em rascunho.
+- Parceiros WordPress sem vínculo Awin permanecem inalterados.
+- Parceiros Awin ausentes da lista joined ou não ativos continuam sendo desativados.
+- Removido o bloqueio needs_mapping/needs_create_confirmation da sincronização em massa.
+
 ## 1.4.5 — Resolução manual e sincronização Awin segura
 
 - Adiciona painel para escolher explicitamente o Post ID canônico de cada Advertiser Awin.
