@@ -1,3 +1,8 @@
+# 1.4.8
+- Corrige autenticação Serben: o header `IDENTIFIER` passa a ser enviado exatamente uma vez (antes eram enviados `IDENTIFIER` e `identifier`, que podem ser mesclados pelo servidor).
+- Padroniza o header da chave como `X-API-KEY` e aplica `trim()` nas credenciais antes do envio.
+- Mascara `X-API-KEY` e `IDENTIFIER` quando a API os ecoar em respostas de erro, evitando exposição em logs e diagnósticos.
+
 # 1.4.7
 - Sincronização Awin em lotes AJAX para evitar Gateway Timeout.
 - Progresso em tempo real no painel administrativo.
