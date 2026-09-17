@@ -1,3 +1,9 @@
+## 1.4.9
+- Adiciona Health Check oficial da integração Serben em Configurações.
+- Usa GET `/api/integracao/status/Health/check` com `x-api-key`, `identifier` e `Accept: application/json`.
+- Exibe HTTP, tempo de resposta e corpo do diagnóstico com credenciais mascaradas.
+- Registra o diagnóstico nos logs sem expor chave ou identifier.
+
 # 1.4.8
 - Corrige autenticação Serben: o header `IDENTIFIER` passa a ser enviado exatamente uma vez (antes eram enviados `IDENTIFIER` e `identifier`, que podem ser mesclados pelo servidor).
 - Padroniza o header da chave como `X-API-KEY` e aplica `trim()` nas credenciais antes do envio.
@@ -91,3 +97,13 @@
 - Tela administrativa **Vínculos** com relink e desvinculação.
 - Novos shortcodes do Portal do Parceiro.
 
+
+## 1.5.0
+- Migração para a API oficial `/api/integracao/*` nos módulos já publicados pela Serben.
+- Consulta de associado migrada de `Clientes/byDocumento` para `portadores/Portadores/getPortadorPorDocumento`.
+- Chaves de loja não enviam `id_loja` nas novas rotas; o escopo é inferido por `x-api-key` + `identifier`.
+- Clube de Benefícios migrado para Planos, Empresas, Contratos, Produtos e Cupons oficiais.
+- Infraestrutura adicionada para Recorrência/Pagadores, Faturas e SubAdquirência.
+- Tratamento explícito de HTTP 429 e `Retry-After` nas novas rotas.
+- Fidelidade permanece deliberadamente na API legada até a Serben publicar rotas substitutas.
+- Health Check oficial preservado.
