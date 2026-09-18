@@ -98,6 +98,14 @@
 - Novos shortcodes do Portal do Parceiro.
 
 
+## 1.5.1
+
+- Saldos e cartão passam a ser lidos da nova API de Portadores.
+- Removida a chamada redundante à rota legada `Clientes/byDocumento` no fluxo normal do associado.
+- Normalização do cartão ativo de `cartoes[]` para os objetos de domínio existentes.
+- Compatibilidade com `saldo_pontos_liberado` e `saldo_ponto_liberado`.
+- Escrita de Fidelidade continua na API legada até existir substituta oficial.
+
 ## 1.5.0
 - Migração para a API oficial `/api/integracao/*` nos módulos já publicados pela Serben.
 - Consulta de associado migrada de `Clientes/byDocumento` para `portadores/Portadores/getPortadorPorDocumento`.

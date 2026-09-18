@@ -2,7 +2,7 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 
 Integra o WordPress à plataforma Serben, com recursos para associados, parceiros, Clube de Benefícios, Awin, Elementor, WooCommerce e diagnóstico da API.
@@ -50,6 +50,13 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 * O cliente da nova API trata HTTP 429 e respeita informações de `Retry-After`, evitando retentativas agressivas.
 
 == Changelog ==
+
+= 1.5.1 =
+* Leitura de cashback, pontos, crédito, limite e cartão migrada para a nova API de Portadores.
+* Eliminada a segunda chamada legada `Clientes/byDocumento` durante a montagem dos dados do associado.
+* O cartão ativo retornado em `cartoes[]` é normalizado para os componentes existentes.
+* Compatibilidade mantida para `saldo_pontos_liberado` (nova API) e `saldo_ponto_liberado` (legada).
+* A API legada de Fidelidade permanece somente para operações ainda sem rota oficial nova, como o registro de cashback.
 
 = 1.5.0 =
 
