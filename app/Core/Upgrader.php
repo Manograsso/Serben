@@ -2,6 +2,7 @@
 namespace SerbenConnect\Core;
 
 use SerbenConnect\Support\Settings;
+use SerbenConnect\Integrations\Awin\Database as AwinDatabase;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -19,6 +20,7 @@ final class Upgrader
         // Regrava as configurações com todos os defaults atuais, preservando os
         // valores já informados pelo administrador.
         Settings::update(Settings::all());
+        AwinDatabase::install();
         update_option('serben_connect_version', SERBEN_CONNECT_VERSION);
         do_action('serben_connect_upgraded', $installed, SERBEN_CONNECT_VERSION);
     }
