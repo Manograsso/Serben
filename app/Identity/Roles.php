@@ -9,6 +9,7 @@ final class Roles
     {
         add_role('serben_associado', 'Associado Serben', ['read' => true]);
         add_role('serben_empresa_cliente', 'Empresa Cliente Serben', ['read' => true]);
+        add_role('serben_entidade', 'Entidade Emissora Serben', ['read' => true, 'upload_files' => true]);
         add_role('serben_lojista', 'Lojista Serben', [
             'read' => true,
             'upload_files' => true,
