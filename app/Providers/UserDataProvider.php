@@ -30,14 +30,38 @@ class UserDataProvider
         }
 
         $userId = get_current_user_id();
-        $cpf = preg_replace('/\D+/', '', (string) get_user_meta($userId, 'serben_cpf', true));
-        if (!$cpf) {
+        $document = $this->resolveDocument($userId);
+        if (!$document) {
+            Logger::add('warning', 'DATA', 'UserDataProvider/current', 0, 'Logged user has no Serben document', [
+                'user_id' => $userId,
+            ]);
             return null;
         }
 
-        $profile = $this->profileProvider->get($cpf, $forceRefresh);
-        $club = $this->clubProvider->get($cpf, $forceRefresh);
+        // Mantém a chave unificada nas contas antigas criadas apenas com serben_cpf.
+        if ((string) get_user_meta($userId, 'serben_documento', true) === '') {
+            update_user_meta($userId, 'serben_documento', $document);
+        }
+
+        $profile = $this->profileProvider->get($document, $forceRefresh);
         $cliente = is_array($profile['data'] ?? null) ? $profile['data'] : [];
+
+        // v1.5.1: a nova rota de Portadores já devolve cartão e saldos.
+        // Reaproveita a mesma resposta para o clube, evitando uma segunda
+        // requisição HTTP para o mesmo CPF.
+        $cardStatus = strtolower(trim((string) ($cliente['status_cartao'] ?? '')));
+        $hasCard = !empty($cliente['numero_cartao']);
+        $club = [
+            'data' => $cliente,
+            'raw' => $cliente,
+            'http_code' => (int) ($profile['http_code'] ?? 0),
+            'linked' => $hasCard && in_array($cardStatus, ['ativo', 'active', '1'], true),
+            'status_retorno' => null,
+            'status_cartao' => $cliente['status_cartao'] ?? null,
+            'id_loja' => (string) \SerbenConnect\Support\Settings::get('id_loja'),
+            'synced_at' => $profile['synced_at'] ?? current_time('mysql'),
+            'source' => 'integration_portadores',
+        ];
 
         if (empty($cliente)) {
             $json = get_user_meta($userId, 'serben_cliente_data', true);
@@ -52,12 +76,14 @@ class UserDataProvider
 
         Logger::add('info', 'DATA', 'UserDataProvider/current', 200, 'Member built from modular providers', [
             'user_id' => $userId,
-            'cpf' => $cpf,
+            'document' => $document,
             'profile_http' => $profile['http_code'] ?? null,
             'profile_found' => $profile['found'] ?? false,
             'club_http' => $club['http_code'] ?? null,
             'club_linked' => $club['linked'] ?? false,
             'club_status_retorno' => $club['status_retorno'] ?? null,
+            'club_has_card' => !empty($club['data']['numero_cartao'] ?? null),
+            'club_response_keys' => array_slice(array_keys(is_array($club['raw'] ?? null) ? $club['raw'] : []), 0, 20),
         ]);
 
         self::$current = new Member($cliente, is_array($club['data'] ?? null) ? $club['data'] : [], $club);
@@ -68,11 +94,35 @@ class UserDataProvider
     {
         self::$current = null;
         if (!is_user_logged_in()) { return; }
-        $cpf = preg_replace('/\D+/', '', (string) get_user_meta(get_current_user_id(), 'serben_cpf', true));
-        if ($cpf) {
-            $this->cache->delete('profile_' . md5($cpf));
-            $idLoja = (string) \SerbenConnect\Support\Settings::get('id_loja');
-            $this->cache->delete('club_' . md5($cpf . '|' . $idLoja));
+
+        $document = $this->resolveDocument(get_current_user_id());
+        if (!$document) { return; }
+
+        $this->cache->delete('profile_' . md5($document));
+        $idLoja = (string) \SerbenConnect\Support\Settings::get('id_loja');
+        $this->cache->delete('club_v3_' . md5($document));
+        $this->cache->delete('club_v2_' . md5($document . '|' . $idLoja));
+        // Remove também as chaves antigas para instalações atualizadas.
+        $this->cache->delete('club_' . md5($document . '|' . $idLoja));
+    }
+
+    private function resolveDocument(int $userId): string
+    {
+        $keys = [
+            'serben_documento',
+            'serben_cpf',
+            'cpf',
+            'billing_cpf',
+            'billing_cnpj',
+        ];
+
+        foreach ($keys as $key) {
+            $value = preg_replace('/\D+/', '', (string) get_user_meta($userId, $key, true));
+            if (strlen($value) === 11 || strlen($value) === 14) {
+                return $value;
+            }
         }
+
+        return '';
     }
 }

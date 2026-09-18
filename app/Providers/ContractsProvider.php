@@ -11,7 +11,7 @@ class ContractsProvider {
         if($out['ok'])$this->cache->set($key,$out,300); return $out;
     }
     private function normalize($body): array {
-        if(!is_array($body))return [];
+        if(!is_array($body))return [];if(isset($body['response'])&&is_array($body['response'])){if(isset($body['response']['content']))return $this->normalize($body['response']['content']);return $this->normalize($body['response']);}
         foreach(['data','registros','contratos','contratos_portador','items'] as $k){if(isset($body[$k])){if($k==='contratos_portador'&&is_array($body[$k]))return $this->normalize($body[$k]); return $this->normalize($body[$k]);}}
         if(array_is_list($body))return array_values(array_filter($body,'is_array'));
         foreach($body as $v){if(is_array($v)&&array_is_list($v))return array_values(array_filter($v,'is_array'));}
