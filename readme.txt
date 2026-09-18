@@ -2,7 +2,7 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 1.6.0
 License: GPLv2 or later
 
 Integra o WordPress à plataforma Serben, com recursos para associados, parceiros, Clube de Benefícios, Awin, Elementor, WooCommerce e diagnóstico da API.
@@ -50,6 +50,15 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 * O cliente da nova API trata HTTP 429 e respeita informações de `Retry-After`, evitando retentativas agressivas.
 
 == Changelog ==
+
+= 1.6.0 =
+* Novo conjunto de shortcodes para Dashboard de Parceiros Bume e Entidades Emissoras.
+* Governança cadastral com campos travados/liberados conforme especificação.
+* Cupons Bume com limites por plano, multicarteira, pacotes de recarga e Hub da Agência.
+* Módulo institucional com plano/faixa de vidas, carteira, extrato anonimizado, faturas e benefícios.
+* Novo papel `serben_entidade`.
+* Diagnóstico de CPF corrigido para executar uma única chamada à API de Portadores.
+* Pontos de extensão para integrar cobrança, extratos e faturas sem simular operações financeiras.
 
 = 1.5.1 =
 * Leitura de cashback, pontos, crédito, limite e cartão migrada para a nova API de Portadores.

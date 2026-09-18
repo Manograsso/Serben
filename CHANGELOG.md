@@ -98,6 +98,16 @@
 - Novos shortcodes do Portal do Parceiro.
 
 
+## 1.6.0
+
+- Shortcodes de Dashboard para Parceiros Bume e Entidades Emissoras.
+- Governança e permissões de edição conforme as novas especificações.
+- Cupons com limites por plano, carteira, recargas e Hub da Agência.
+- Entidades: faixa de vidas, carteira, extrato LGPD, faturas e benefícios.
+- Papel `serben_entidade`.
+- Diagnóstico de CPF reduzido a uma única chamada de Portadores.
+- Hooks/filtros para conexão posterior das operações financeiras reais.
+
 ## 1.5.1
 
 - Saldos e cartão passam a ser lidos da nova API de Portadores.
