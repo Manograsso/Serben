@@ -8,6 +8,7 @@ use SerbenConnect\Dependents\FieldGlossary as DependentFieldGlossary;
 use SerbenConnect\Support\Logger;
 use SerbenConnect\Support\Settings;
 use SerbenConnect\Core\EnvironmentInspector;
+use SerbenConnect\API\Client;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -20,6 +21,7 @@ class Admin
         add_action('admin_menu', [$this, 'menu']);
         add_action('admin_post_serben_save_settings', [$this, 'saveSettings']);
         add_action('admin_post_serben_test_connection', [$this, 'testConnection']);
+        add_action('admin_post_serben_health_check', [$this, 'healthCheck']);
         add_action('admin_post_serben_clear_logs', [$this, 'clearLogs']);
     }
 
@@ -52,9 +54,21 @@ class Admin
         $cpf = Settings::get('test_cpf');
         $clientes = new ClientesService();
         $result = $clientes->buscarPorDocumento($cpf);
-        $saldo = $clientes->buscarSaldoPorDocumento($cpf);
-        set_transient('serben_connect_last_test', ['cliente' => $result, 'saldo' => $saldo], 120);
+        // v1.6.0: Portadores já devolve cadastro, cartão e saldos; uma única chamada evita duplicidade.
+        set_transient('serben_connect_last_test', ['portador' => $result], 120);
         wp_safe_redirect(admin_url('admin.php?page=serben-connect&tested=1'));
+        exit;
+    }
+
+    public function healthCheck(): void
+    {
+        if (!current_user_can('manage_options') || !check_admin_referer('serben_health_check')) {
+            wp_die('Acesso negado.');
+        }
+
+        $result = (new Client())->healthCheck();
+        set_transient('serben_connect_last_health_check', $result, 300);
+        wp_safe_redirect(admin_url('admin.php?page=serben-connect&health_checked=1'));
         exit;
     }
 
@@ -72,8 +86,9 @@ class Admin
     {
         $s = Settings::all();
         $last = get_transient('serben_connect_last_test');
-        $clienteTest = is_array($last) && isset($last['cliente']) ? $last['cliente'] : $last;
-        $saldoTest = is_array($last) && isset($last['saldo']) ? $last['saldo'] : null;
+        $clienteTest = is_array($last) && isset($last['portador']) ? $last['portador'] : (is_array($last) && isset($last['cliente']) ? $last['cliente'] : $last);
+        $saldoTest = null;
+        $healthCheck = get_transient('serben_connect_last_health_check');
         $partnerPostTypes = [];
         foreach (get_post_types(['show_ui' => true], 'objects') as $postTypeName => $postTypeObject) {
             if (in_array($postTypeName, ['post', 'page', 'attachment'], true)) { continue; }
@@ -110,12 +125,31 @@ class Admin
             <?php if (!empty($_GET['updated'])): ?><div class="notice notice-success"><p>Configurações salvas.</p></div><?php endif; ?>
             <?php if (!empty($_GET['tested']) && is_array($clienteTest)): ?>
                 <div class="notice <?php echo !empty($clienteTest['ok']) ? 'notice-success' : 'notice-error'; ?>">
-                    <p><strong>Teste cliente:</strong> HTTP <?php echo esc_html((string)($clienteTest['code'] ?? '0')); ?> — <?php echo !empty($clienteTest['ok']) ? 'conectado com sucesso.' : 'falha na chamada.'; ?></p>
+                    <p><strong>Teste Portador (cadastro + cartão + saldos):</strong> HTTP <?php echo esc_html((string)($clienteTest['code'] ?? '0')); ?> — <?php echo !empty($clienteTest['ok']) ? 'conectado com sucesso.' : 'falha na chamada.'; ?></p>
                     <p><strong>URL:</strong> <code><?php echo esc_html($clienteTest['url'] ?? ''); ?></code></p>
                     <?php if (is_array($saldoTest)): ?><p><strong>Teste saldo:</strong> HTTP <?php echo esc_html((string)($saldoTest['code'] ?? '0')); ?> — <code><?php echo esc_html($saldoTest['url'] ?? ''); ?></code></p><?php endif; ?>
                     <details><summary>Resposta da API</summary><pre style="white-space:pre-wrap;background:#fff;padding:12px;border:1px solid #ccd0d4;max-height:350px;overflow:auto;"><?php echo esc_html(print_r($last, true)); ?></pre></details>
                 </div>
             <?php endif; ?>
+
+            <?php if (!empty($_GET['health_checked']) && is_array($healthCheck)): ?>
+                <div class="notice <?php echo !empty($healthCheck['ok']) ? 'notice-success' : 'notice-error'; ?>">
+                    <p><strong>Health Check Serben:</strong> HTTP <?php echo esc_html((string)($healthCheck['code'] ?? '0')); ?> — <?php echo !empty($healthCheck['ok']) ? 'integração saudável.' : 'falha no diagnóstico.'; ?></p>
+                    <p><strong>Tempo de resposta:</strong> <?php echo esc_html((string)($healthCheck['duration_ms'] ?? '—')); ?> ms</p>
+                    <p><strong>URL:</strong> <code><?php echo esc_html((string)($healthCheck['url'] ?? '')); ?></code></p>
+                    <details><summary>Resposta do Health Check</summary><pre style="white-space:pre-wrap;background:#fff;padding:12px;border:1px solid #ccd0d4;max-height:350px;overflow:auto;"><?php echo esc_html(print_r($healthCheck, true)); ?></pre></details>
+                </div>
+            <?php endif; ?>
+
+            <div class="card" style="max-width:900px;margin:16px 0;padding:16px;">
+                <h2 style="margin-top:0;">Diagnóstico oficial da integração Serben</h2>
+                <p>Executa o endpoint <code>/api/integracao/status/Health/check</code> com a chave e o IDENTIFIER salvos abaixo. As credenciais não são exibidas no resultado nem nos logs.</p>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                    <?php wp_nonce_field('serben_health_check'); ?>
+                    <input type="hidden" name="action" value="serben_health_check">
+                    <?php submit_button('Executar Health Check', 'secondary', 'submit', false); ?>
+                </form>
+            </div>
 
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                 <?php wp_nonce_field('serben_save_settings'); ?>
@@ -124,7 +158,7 @@ class Admin
                     <tr><th>URL Base</th><td><input class="regular-text" name="serben[base_url]" value="<?php echo esc_attr($s['base_url']); ?>"><p class="description">Ex.: https://serben.conectar.site</p></td></tr>
                     <tr><th>x-api-key</th><td><input class="regular-text" name="serben[api_key]" value="<?php echo esc_attr($s['api_key']); ?>"></td></tr>
                     <tr><th>IDENTIFIER</th><td><input class="regular-text" name="serben[identifier]" value="<?php echo esc_attr($s['identifier']); ?>"></td></tr>
-                    <tr><th>ID Loja</th><td><input class="regular-text" name="serben[id_loja]" value="<?php echo esc_attr($s['id_loja']); ?>"><p class="description">Usado em consultas de saldo/pontos quando exigido pela API.</p></td></tr>
+                    <tr><th>ID Loja</th><td><input class="regular-text" name="serben[id_loja]" value="<?php echo esc_attr($s['id_loja']); ?>"><p class="description">Legado: usado somente por rotas antigas (ex.: fidelidade/saldos). As novas rotas de integração inferem a loja pelas credenciais.</p></td></tr>
                     <tr><th>CNPJ Empresa</th><td><input class="regular-text" name="serben[cnpj_empresa]" value="<?php echo esc_attr($s['cnpj_empresa']); ?>"></td></tr>
                     <tr><th>CNPJ do Credenciador</th><td><input class="regular-text" name="serben[cnpj_credenciador]" value="<?php echo esc_attr($s['cnpj_credenciador'] ?? ''); ?>"><p class="description">Usado para localizar lojas no login de parceiros.</p></td></tr>
                     <tr><th>Código padrão</th><td><input class="regular-text" name="serben[codigo]" value="<?php echo esc_attr($s['codigo']); ?>"></td></tr>
@@ -153,6 +187,15 @@ class Admin
                             <option value="<?php echo esc_attr($taxonomyName); ?>" <?php selected($s['partners_benefit_taxonomy'] ?? 'tipo-de-beneficio', $taxonomyName); ?>><?php echo esc_html(($taxonomyInfo['label'] ?? $taxonomyName) . ' — ' . $taxonomyName . ' (' . (int) ($taxonomyInfo['terms'] ?? 0) . ' termos)'); ?></option>
                         <?php endforeach; ?>
                     </select></td></tr>
+                    <tr><th colspan="2"><h2>Awin / Cashback</h2></th></tr>
+                    <tr><th>Publisher ID Awin</th><td><input class="regular-text" name="serben[awin_publisher_id]" value="<?php echo esc_attr($s['awin_publisher_id'] ?? '690361'); ?>"></td></tr>
+                    <tr><th>API Token Awin</th><td><input class="regular-text" type="password" autocomplete="new-password" name="serben[awin_api_token]" value="" placeholder="<?php echo !empty($s['awin_api_token']) ? 'Token salvo — deixe vazio para manter' : 'Cole o token'; ?>"><p class="description">O token nunca é exibido novamente nem deve aparecer nos logs.</p></td></tr>
+                    <tr><th>Sincronização Awin</th><td><label><input type="checkbox" name="serben[awin_sync_enabled]" value="1" <?php checked($s['awin_sync_enabled'] ?? '1','1'); ?>> Sincronizar transações automaticamente a cada hora</label></td></tr>
+                    <tr><th>Cashback padrão (%)</th><td><input type="number" min="0" step="0.01" name="serben[awin_default_cashback_percent]" value="<?php echo esc_attr((string)($s['awin_default_cashback_percent'] ?? '0')); ?>"><p class="description">Aplicado a novos parceiros importados; pode ser alterado individualmente no post.</p></td></tr>
+                    <tr><th>ID Loja Serben (Awin)</th><td><input type="number" min="1" name="serben[awin_serben_store_id]" value="<?php echo esc_attr((string)($s['awin_serben_store_id'] ?? '1')); ?>"></td></tr>
+                    <tr><th>ID Usuário Lojista Serben (Awin)</th><td><input type="number" min="1" name="serben[awin_serben_user_id]" value="<?php echo esc_attr((string)($s['awin_serben_user_id'] ?? '1')); ?>"></td></tr>
+                    <tr><th>Janela de transações Awin</th><td><input type="number" min="1" max="31" name="serben[awin_transaction_days]" value="<?php echo esc_attr((string)($s['awin_transaction_days'] ?? '7')); ?>"> dias</td></tr>
+                    <tr><th>Moeda para crédito automático</th><td><input class="small-text" name="serben[awin_credit_currency]" value="<?php echo esc_attr((string)($s['awin_credit_currency'] ?? 'BRL')); ?>"><p class="description">Transações em outra moeda ficam para revisão manual, evitando crédito incorreto.</p></td></tr>
                     <tr><th>Cache do associado</th><td><input class="regular-text" type="number" min="60" name="serben[cache_ttl]" value="<?php echo esc_attr((string)($s['cache_ttl'] ?? '600')); ?>"><p class="description">Tempo em segundos. Padrão: 600 segundos.</p></td></tr>
                     <tr><th>Debug</th><td><label><input type="checkbox" name="serben[debug]" value="1" <?php checked($s['debug'], '1'); ?>> Registrar chamadas nos logs</label></td></tr>
                     <tr><th>Exibir detalhes técnicos no frontend</th><td><label><input type="checkbox" name="serben[show_technical_front]" value="1" <?php checked($s['show_technical_front'], '1'); ?>> Usar apenas durante testes</label></td></tr>
