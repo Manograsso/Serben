@@ -18,10 +18,17 @@ use SerbenConnect\Dependents\RegistrationController as DependentRegistrationCont
 use SerbenConnect\Core\Upgrader;
 use SerbenConnect\Identity\Roles;
 use SerbenConnect\Shortcodes\PartnerLoginShortcode;
+use SerbenConnect\Shortcodes\DashboardModulesShortcodes;
 use SerbenConnect\Integrations\Elementor\ElementorIntegration;
 use SerbenConnect\Partners\Portal\PartnerPortal;
 use SerbenConnect\Partners\Permissions\PartnerPermissions;
 use SerbenConnect\Admin\PartnerLinksAdmin;
+use SerbenConnect\Integrations\Awin\Database as AwinDatabase;
+use SerbenConnect\Integrations\Awin\PartnerMeta as AwinPartnerMeta;
+use SerbenConnect\Integrations\Awin\TrackingService as AwinTrackingService;
+use SerbenConnect\Integrations\Awin\Shortcodes as AwinShortcodes;
+use SerbenConnect\Integrations\Awin\Admin as AwinAdmin;
+use SerbenConnect\Integrations\Awin\Cron as AwinCron;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -42,6 +49,7 @@ final class Plugin
     public static function activate(): void
     {
         Roles::register();
+        AwinDatabase::install();
         add_option('serben_connect_version', SERBEN_CONNECT_VERSION);
         add_option('serben_connect_settings', [
             'base_url' => 'https://serben.conectar.site',
@@ -61,6 +69,7 @@ final class Plugin
 
     public static function deactivate(): void
     {
+        AwinCron::deactivate();
         // Mantém configurações e logs para diagnóstico.
     }
 
@@ -73,9 +82,15 @@ final class Plugin
         (new RegisterShortcode())->register();
         (new LoginShortcode())->register();
         (new PartnerLoginShortcode())->register();
+        (new DashboardModulesShortcodes())->register();
         (new PartnerPortal())->register();
         (new PartnerPermissions())->register();
         (new PartnerLinksAdmin())->register();
+        (new AwinPartnerMeta())->register();
+        (new AwinTrackingService())->register();
+        (new AwinShortcodes())->register();
+        (new AwinAdmin())->register();
+        (new AwinCron())->register();
         (new AppShortcode())->register();
         (new RegisterSubmitShortcode())->register();
         (new RegistrationController())->register();
