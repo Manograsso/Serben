@@ -3,6 +3,7 @@ namespace SerbenConnect\Services;
 
 use SerbenConnect\API\Client;
 use SerbenConnect\Support\Settings;
+use SerbenConnect\Services\PortadoresService;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -24,27 +25,17 @@ class ClientesService
             return ['ok' => false, 'code' => 0, 'body' => null, 'raw' => 'CPF vazio.', 'url' => ''];
         }
 
-        return $this->client->get('Clientes/byDocumento', [
-            'documento' => $cpf,
-        ], true);
+        // v1.5.0: official Integration API replacement for Clientes/byDocumento.
+        return (new PortadoresService($this->client))->getPorDocumento($cpf);
     }
 
 
     public function buscarSaldoPorDocumento(string $cpf): array
     {
-        $cpf = preg_replace('/\D+/', '', $cpf);
-        $idLoja = Settings::get('id_loja');
-
-        if (!$cpf) {
-            return ['ok' => false, 'code' => 0, 'body' => null, 'raw' => 'CPF vazio.', 'url' => ''];
-        }
-
-        $query = ['documento' => $cpf];
-        if ($idLoja !== '') {
-            $query['idLoja'] = $idLoja;
-        }
-
-        return $this->client->get('Clientes/byDocumento', $query, true);
+        // v1.5.1: leitura de saldo/cartão vem da nova API de Portadores.
+        // A API legada fica reservada às operações de fidelidade que ainda não
+        // possuem substituta oficial (ex.: crédito de cashback).
+        return $this->buscarPorDocumento($cpf);
     }
 
     public function extractSaldo(array $result): array
@@ -54,6 +45,10 @@ class ClientesService
         }
 
         $body = $result['body'];
+        // New Integration API envelope: {status, message, response}.
+        if (isset($body['response']) && is_array($body['response']) && !empty($body['response'])) {
+            return $this->normalizePortador($body['response']);
+        }
         $paths = [
             ['data', 'saldo'],
             ['data', 'saldos'],
@@ -61,6 +56,7 @@ class ClientesService
             ['data', 'clientes', 0],
             ['data', 0],
             ['data'],
+            [0],
             ['saldo'],
             ['saldos'],
         ];
@@ -85,16 +81,32 @@ class ClientesService
 
     public function hasClubData(array $body): bool
     {
-        if (isset($body['statusRetorno'])) {
-            return (int) $body['statusRetorno'] === 1;
-        }
-        $keys = ['saldo_pontos', 'saldo_cashback', 'numero_cartao', 'status_cartao', 'pontos', 'cashback', 'saldos_portador', 'todos_cartoes_aceitos_nessa_loja'];
+        $keys = [
+            'saldo_ponto_liberado', 'saldo_pontos_liberado',
+            'saldo_cashback_liberado', 'saldo_cashback_disponivel',
+            'saldo_pontos', 'saldo_cashback', 'numero_cartao', 'status_cartao',
+            'pontos', 'cashback', 'saldos_portador', 'todos_cartoes_aceitos_nessa_loja'
+        ];
         foreach ($keys as $key) {
             if (array_key_exists($key, $body) && $body[$key] !== null && $body[$key] !== '') {
                 return true;
             }
         }
-        return false;
+
+        // Algumas instalações da API envolvem o objeto real em `data`, `cliente`,
+        // `saldo` ou em uma lista numérica. Inspeciona recursivamente apenas
+        // estruturas conhecidas para não confundir mensagens de status com vínculo.
+        foreach (['data', 'cliente', 'saldo', 'saldos'] as $wrapper) {
+            if (isset($body[$wrapper]) && is_array($body[$wrapper]) && $this->hasClubData($body[$wrapper])) {
+                return true;
+            }
+        }
+        if (isset($body[0]) && is_array($body[0]) && $this->hasClubData($body[0])) {
+            return true;
+        }
+
+        // statusRetorno só é usado quando nenhum dado material de cartão/saldo existe.
+        return isset($body['statusRetorno']) && (int) $body['statusRetorno'] === 1;
     }
 
     /**
@@ -150,6 +162,12 @@ class ClientesService
         }
 
         $body = $result['body'];
+
+        // Nova API de integração: { status, message, response }.
+        if (isset($body['response']) && is_array($body['response']) && !empty($body['response'])) {
+            return $this->normalizePortador($body['response']);
+        }
+
         $paths = [
             ['data', 'dados_portador', 0],
             ['data', 'cliente'],
@@ -185,6 +203,56 @@ class ClientesService
         }
 
         return null;
+    }
+
+    /**
+     * Normaliza o retorno da nova API sem perder a estrutura original.
+     * O cartão ativo é também projetado na raiz para manter compatibilidade
+     * com os Domain objects e shortcodes existentes.
+     */
+    private function normalizePortador(array $portador): array
+    {
+        $cards = isset($portador['cartoes']) && is_array($portador['cartoes'])
+            ? $portador['cartoes'] : [];
+
+        $active = [];
+        foreach ($cards as $card) {
+            if (!is_array($card)) { continue; }
+            $status = strtolower(trim((string) ($card['status'] ?? '')));
+            if ($status === 'ativo' || $status === 'active' || $status === '1') {
+                $active = $card;
+                break;
+            }
+        }
+        if (!$active && isset($cards[0]) && is_array($cards[0])) {
+            $active = $cards[0];
+        }
+
+        if ($active) {
+            foreach ([
+                'numero_cartao',
+                'saldo_credito',
+                'limite_credito',
+                'saldo_cashback_liberado',
+                'saldo_pontos_liberado',
+            ] as $key) {
+                if (array_key_exists($key, $active)) {
+                    $portador[$key] = $active[$key];
+                }
+            }
+            if (array_key_exists('status', $active)) {
+                $portador['status_cartao'] = $active['status'];
+            }
+        }
+
+        // Alias transitório para componentes/instalações que ainda conhecem
+        // o singular retornado pela API legada.
+        if (array_key_exists('saldo_pontos_liberado', $portador)
+            && !array_key_exists('saldo_ponto_liberado', $portador)) {
+            $portador['saldo_ponto_liberado'] = $portador['saldo_pontos_liberado'];
+        }
+
+        return $portador;
     }
 
     public function extractPortador(array $result): ?array

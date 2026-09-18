@@ -1,0 +1,3 @@
+<?php
+namespace SerbenConnect\Services; use SerbenConnect\API\Client;
+if(!defined('ABSPATH')){exit;} final class CuponsService{private $c;function __construct(?Client $c=null){$this->c=$c?:new Client();}function listar(int $page=1,int $limit=100):array{return $this->c->integrationGet('clube_beneficio','Cupons/listarCupons',['page'=>max(1,$page),'limit'=>min(100,max(1,$limit))]);}function getPorId(int $id):array{return $this->c->integrationGet('clube_beneficio','Cupons/getCupomPorId',['id_cupom'=>$id]);}function cadastrar(array $p):array{return $this->c->integrationPost('clube_beneficio','Cupons/cadastrarCupom',$p);}}
