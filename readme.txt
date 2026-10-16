@@ -2,10 +2,10 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.7.3
 License: GPLv2 or later
 
-Integra o WordPress à plataforma Serben, com recursos para associados, parceiros, Clube de Benefícios, Awin, Elementor, WooCommerce e diagnóstico da API.
+Portal operacional do Clube SerBen em WordPress: integrações SerBen, associados, parceiros, entidades, credenciamento, dashboards, Awin e Elementor.
 
 == Descrição ==
 
@@ -26,6 +26,35 @@ Entre os principais recursos estão:
 * Integração Awin para programas, tracking, transações e cashback.
 * Sincronização Awin em lotes para evitar timeouts.
 * Ferramentas administrativas de diagnóstico e vínculo de parceiros.
+
+== Arquitetura operacional (1.7.x) ==
+
+O WordPress e o portal Clube SerBen passam a concentrar interfaces, regras contratuais, cálculos e registros internos. A API externa fornece dados disponíveis de portadores e movimentações e poderá receber atualizações apenas quando houver endpoints documentados. Não há sincronização automática de novos credenciamentos com o App nesta versão.
+
+Distinção de saldos: Cashback de Loja (desconto comercial), C$ Bume/Cash Bume (CCI, bonificação da rede) e Bumes/Pontos (fidelidade, sem saque). O deságio de 40% para resgate externo de C$ Bume é uma regra prevista na documentação de negócios, não um fluxo de saque já habilitado no plugin.
+
+== Credenciamento de parceiros e entidades (1.7.3) ==
+
+* `[serben_partner_apply]`: formulário público de solicitação de credenciamento de lojista.
+* `[serben_entity_apply]`: formulário público de solicitação de credenciamento de sindicato/entidade.
+* Campos: razão social, nome fantasia, CNPJ, responsável, e-mail, telefone e endereço.
+* Solicitações ficam no WordPress e são revisadas em Configurações > Credenciamentos SerBen.
+* Aprovação/rejeição conclui apenas a análise: NÃO cria automaticamente usuário, parceiro operacional, corporação externa ou acesso ao dashboard.
+* Envio de notificação administrativa por e-mail depende da configuração de e-mail do WordPress.
+* Não há envio automático dos dados cadastrais ao App.
+
+== Dashboards operacionais (1.7.0 a 1.7.2) ==
+
+* `[serben_entity_operational_dashboard]`: portal da entidade com navegação por perfil, associados e planos, conta, faturas e mídia; informações exibidas conforme dados cadastrados e permissões.
+* `[serben_partner_operational_dashboard]`: estrutura inicial do portal operacional do lojista.
+* Infraestrutura interna de ledger, competências de entidades e auditoria.
+* A visualização de saldo disponível depende de registro e homologação; não são simulados pagamentos, créditos ou resgates.
+* Três perfis institucionais previstos: Diretoria, Secretária e Atendente.
+* Funcionalidades ainda pendentes: cadastro/gestão operacional completa dos associados, homologação e importação de movimentações, cobrança, Pix, saques, repasses, filiais, validador de balcão e sincronização de cupons com App.
+
+== Limitações e cuidados de produção ==
+
+Esta versão não representa a conclusão dos módulos financeiros. Para instalação em produção, efetue backup do banco e do plugin, teste os formulários e as permissões em homologação e valide o funcionamento das integrações existentes. As rotinas financeiras e integrações sem endpoint confirmado permanecem indisponíveis.
 
 == Instalação ==
 
@@ -50,6 +79,26 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 * O cliente da nova API trata HTTP 429 e respeita informações de `Retry-After`, evitando retentativas agressivas.
 
 == Changelog ==
+
+= 1.7.3 =
+* Formulários públicos de solicitação de credenciamento para Parceiros e Entidades.
+* Backoffice de análise com aprovação e rejeição em Configurações > Credenciamentos SerBen.
+* Armazenamento local das solicitações, validação básica, nonce e aviso por e-mail ao administrador.
+* Aprovação ainda não cria contas nem sincroniza dados com o App.
+
+= 1.7.2 =
+* Reforço de controles do portal da entidade: vínculo institucional explícito e apresentação de valores em conferência.
+* Preservação dos shortcodes e módulos anteriores.
+
+= 1.7.1 =
+* Dashboard da entidade com navegação por seções, perfil, associados e planos, conta, faturas e mídia.
+* Exibição de dados institucionais e competências internas, respeitando permissões.
+
+= 1.7.0 =
+* Início do núcleo operacional próprio em WordPress.
+* Estruturas para ledger, apuração de entidades e auditoria.
+* Perfis institucionais e shortcodes operacionais de entidades e lojistas.
+
 
 = 1.6.0 =
 * Novo conjunto de shortcodes para Dashboard de Parceiros Bume e Entidades Emissoras.

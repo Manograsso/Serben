@@ -125,3 +125,6 @@
 - Tratamento explícito de HTTP 429 e `Retry-After` nas novas rotas.
 - Fidelidade permanece deliberadamente na API legada até a Serben publicar rotas substitutas.
 - Health Check oficial preservado.
+
+## 1.7.2
+- Segurança de vínculo institucional nos demonstrativos; saldos não homologados sinalizados como em conferência.
