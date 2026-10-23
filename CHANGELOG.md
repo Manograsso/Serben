@@ -1,3 +1,16 @@
+## 2.0.4
+- ClickRef pseudonimo identificavel por prefixo estavel, mantendo unicidade por clique; sem CPF.
+- Links de parceiros do shortcode abrem em nova aba.
+
+## 1.7.7
+- Invalidação de cache de perfil na migração e atualização da chave para forçar nova consulta.
+- Cashback restrito a campos específicos, sem confusão com crédito ou CCI.
+- Registro diagnóstico de presença de campos de saldo (sem valores sensíveis).
+
+## 1.7.6
+- Correção de cache, leitura de cartão e apresentação dos saldos de Cashback e Pontos.
+- CCI continua independente, sem fallback para Cashback.
+
 ## 1.4.9
 - Adiciona Health Check oficial da integração Serben em Configurações.
 - Usa GET `/api/integracao/status/Health/check` com `x-api-key`, `identifier` e `Accept: application/json`.

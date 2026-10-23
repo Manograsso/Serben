@@ -2,7 +2,7 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 1.7.3
+Stable tag: 2.0.5
 License: GPLv2 or later
 
 Portal operacional do Clube SerBen em WordPress: integrações SerBen, associados, parceiros, entidades, credenciamento, dashboards, Awin e Elementor.
@@ -271,3 +271,65 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 * Motor central de componentes para reutilização por Elementor e REST.
 * Tela Ambiente para diagnóstico da instalação e integrações.
 * Atualização segura a partir das versões 0.x.
+
+== 1.7.4 — módulos e vínculos ==
+Shortcodes independentes: [serben_entity_perfil_module], [serben_entity_associados_module], [serben_entity_conta_module], [serben_entity_faturas_module], [serben_entity_midia_module]; [serben_partner_perfil_module], [serben_partner_conta_module], [serben_partner_marketing_module], [serben_partner_validador_module], [serben_partner_contrato_module].
+Vínculos administrativos em Usuários > Editar: serben_entity_id e serben_partner_post_id, além de dados institucionais. Os dados da API não são simulados; módulos financeiros permanecem em leitura ou aguardando integração.
+
+== Correção v1.7.5 ==
+Carteira do associado: Cashback é somente cashback; C$ Bume/Net Bume consulta somente campos CCI; Bumes correspondem a pontos. Novo [serben_card_cashbume] e [serben_cashbume]. Campos CCI ausentes retornam Indisponível, sem substituir por cashback.
+
+== Correção v1.7.6 ==
+* Cache de perfil versionado para eliminar dados antigos sem saldos normalizados.
+* Normalização defensiva dos saldos aninhados em cartoes no provedor do usuário.
+* Cards de Cashback e Pontos mostram saldos quando presentes, independentemente do indicador de vínculo.
+* CCI não é inferido a partir de Cashback: indisponível quando ausente.
+
+Versão 1.8.0: shortcode de diagnóstico administrativo [serben_diagnostico_carteiras]. Consulta direta ao endpoint Portadores e compara campos com o UserDataProvider sem expor documentos ou tokens.
+
+Versão 1.8.0: diagnóstico administrativo permite user_id no shortcode para testar o documento vinculado a outro usuário, sem depender do CPF do administrador. Provider de outra sessão não é apresentado como se fosse do usuário selecionado.
+
+Versão 1.8.0: diagnóstico do provider para qualquer user_id selecionado, sem alterar sessão; cache de perfil v180; Cash Bume usa Pontos/Bumes, Net Bume usa exclusivamente CCI; novo [serben_card_netbume].
+
+Versão 1.8.1: nomenclatura NET BUME / CASH BUME para CCI. Bumes/Pontos permanecem separados; shortcodes existentes preservados e serben_card_cashbume/serben_cashbume alinhados ao CCI.
+
+= 1.9.0 =
+* Vínculos locais entre entidades e portadores existentes na API, sem criar duplicatas.
+* Gestão de pausa/reativação local com trilha de auditoria; nenhuma alteração externa.
+* Shortcodes [serben_entity_members], [serben_entity_member_register], [serben_entity_member_list].
+
+= 1.9.1 =
+* Formulario e listagem de associados separados para Elementor.
+* Pesquisa, filtros, paginacao e exportacao CSV administrativa por entidade.
+* Nenhuma mutacao na API externa.
+
+== 1.9.2 ==
+* Diagnóstico administrativo por clickRef, histórico local e estado do agendamento AWIN.
+* Motivos explícitos para transações aprovadas sem crédito; sem alteração no envio financeiro.
+
+== 1.9.3 ==
+* Diagnóstico somente leitura por ID de transação AWIN, com comparação de campos operacionais retornados e dados locais. Não altera o fluxo de crédito.
+
+== 1.9.4 ==
+* Corrige a leitura do commissionStatus e clickRefs da AWIN, preservando os vínculos existentes e mantendo transações pending sem crédito.
+* Permite reavaliar registros antigos pela sincronização, com proteção contra duplicidade para registros já creditados.
+
+== 2.0.2 ==
+* Monitoramento administrativo de conciliação AWIN: pendências, transações aprovadas sem crédito e erros.
+* Registro de última execução automática e de falhas de consulta AWIN.
+* Reconsulta de transações por pelo menos 30 dias para acompanhar aprovações posteriores (máximo 90 dias).
+* Mantida a política de não creditar transações pendentes; nenhum crédito manual automático adicional.
+
+= 2.0.3 =
+* Rastreio AWIN: impede fallback sem ClickRef, valida link e gravação do clique; registra falhas e usa rastreamento para associados logados mesmo sem cashback.
+
+= 2.0.4 =
+* ClickRef pseudonimizado com identificador estavel do usuario e sufixo unico por clique, sem expor CPF.
+* Links do shortcode de parceiros abrem em nova aba com noopener/noreferrer.
+
+== 2.0.5 — Crédito AWIN exclusivo do app SerBen ==
+* Desativa permanentemente as chamadas de crédito financeiro AWIN pelo WordPress, em execução manual e automática.
+* Preserva rastreamento, associação ClickRef/usuário e sincronização AWIN.
+* Transações aprovadas elegíveis recebem estado local external_app (não é confirmação de crédito).
+* Registros historicamente creditados são preservados, sem novos lançamentos.
+* Painel administrativo informa explicitamente que o crédito pertence ao aplicativo SerBen.
