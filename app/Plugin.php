@@ -16,6 +16,10 @@ use SerbenConnect\Integrations\WooCommerce\PlanProductSync;
 use SerbenConnect\Shortcodes\DependentSubmitShortcode;
 use SerbenConnect\Dependents\RegistrationController as DependentRegistrationController;
 use SerbenConnect\Core\Upgrader;
+use SerbenConnect\Core\OperationalCore;
+use SerbenConnect\Core\EntityMembers;
+use SerbenConnect\Diagnostics\WalletDiagnostic;
+use SerbenConnect\Core\Onboarding;
 use SerbenConnect\Identity\Roles;
 use SerbenConnect\Shortcodes\PartnerLoginShortcode;
 use SerbenConnect\Shortcodes\DashboardModulesShortcodes;
@@ -50,6 +54,8 @@ final class Plugin
     {
         Roles::register();
         AwinDatabase::install();
+        OperationalCore::install();
+        EntityMembers::install();
         add_option('serben_connect_version', SERBEN_CONNECT_VERSION);
         add_option('serben_connect_settings', [
             'base_url' => 'https://serben.conectar.site',
@@ -76,6 +82,9 @@ final class Plugin
     public function boot(): void
     {
         Roles::register();
+        OperationalCore::register();
+        EntityMembers::register();
+        Onboarding::register();
         Upgrader::maybeUpgrade();
         (new Admin())->register();
         (new LookupShortcode())->register();
@@ -91,10 +100,12 @@ final class Plugin
         (new AwinShortcodes())->register();
         (new AwinAdmin())->register();
         (new AwinCron())->register();
+        \SerbenConnect\Partners\Unified\UnifiedCatalog::register();
         (new AppShortcode())->register();
         (new RegisterSubmitShortcode())->register();
         (new RegistrationController())->register();
         (new AccountShortcodes())->register();
+        (new WalletDiagnostic())->register();
         (new RefreshMemberAction())->register();
         (new PlanProductSync())->register();
         (new DependentSubmitShortcode())->register();

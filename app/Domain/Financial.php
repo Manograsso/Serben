@@ -17,8 +17,8 @@ class Financial
     public function creditInCents()
     {
         return DataExtractor::first([$this->clubData, $this->cliente], [
-            'saldos_portador.credito', 'saldo_credito_cartao', 'saldo_credito',
-            'credito', 'saldo.credito'
+            'saldo_credito_liberado', 'saldos_portador.credito',
+            'saldo_credito_cartao', 'saldo_credito', 'credito', 'saldo.credito'
         ], null);
     }
 

@@ -17,6 +17,7 @@ class Points
     public function value()
     {
         return DataExtractor::first([$this->clubData, $this->cliente], [
+            'saldo_ponto_liberado', 'saldo_pontos_liberado',
             'saldos_portador.pontos', 'saldo_pontos', 'pontos', 'saldoPontos',
             'saldo_ponto', 'pontuacao', 'saldo_fidelidade_pontos',
             'fidelidade.pontos', 'saldo.points'

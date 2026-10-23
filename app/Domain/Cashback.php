@@ -16,10 +16,12 @@ class Cashback
 
     public function valueInCents()
     {
+        // Apenas campos comprovadamente relacionados ao cashback. Não usar crédito,
+        // CCI ou valores genéricos como fallback de saldo financeiro.
         return DataExtractor::first([$this->clubData, $this->cliente], [
-            'saldos_portador.debito', 'saldo_debito_cartao', 'saldo_cashback',
-            'cashback', 'saldoCashback', 'valor_cashback', 'saldo_disponivel',
-            'fidelidade.cashback', 'saldo.cashback'
+            'saldo_cashback_liberado', 'saldo_cashback_disponivel',
+            'cartoes.0.saldo_cashback_liberado', 'cartoes.0.saldo_cashback_disponivel',
+            'saldo_cashback', 'cashback', 'saldoCashback', 'fidelidade.cashback'
         ], null);
     }
 

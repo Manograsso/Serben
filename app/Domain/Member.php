@@ -10,6 +10,7 @@ class Member
     private $card;
     private $points;
     private $cashback;
+    private $cashBume;
     private $financial;
     private $club;
     private $raw;
@@ -23,6 +24,7 @@ class Member
         $this->card = new Card($cliente, $clubData);
         $this->points = new Points($cliente, $clubData);
         $this->cashback = new Cashback($cliente, $clubData);
+        $this->cashBume = new CashBume($cliente, $clubData);
         $this->financial = new Financial($cliente, $clubData);
     }
 
@@ -33,6 +35,7 @@ class Member
     public function card(): Card { return $this->card; }
     public function points(): Points { return $this->points; }
     public function cashback(): Cashback { return $this->cashback; }
+    public function cashBume(): CashBume { return $this->cashBume; }
     public function financial(): Financial { return $this->financial; }
     public function raw(): array { return $this->raw; }
     public function get(string $path, $default = '') { return DataExtractor::get($this->raw, $path, $default); }
