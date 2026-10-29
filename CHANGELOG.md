@@ -1,3 +1,9 @@
+## 2.1.0 — Acesso híbrido com aprovação
+- Solicitações públicas e convites administrativos para parceiros e entidades.
+- Aprovação manual, criação de contas com senha definida via link de recuperação.
+- Login por e-mail e senha WordPress; primeiro acesso por CNPJ sem validação desativado.
+- Vínculo local por CNPJ; nenhuma permissão externa da API SerBen é presumida.
+
 ## 2.0.4
 - ClickRef pseudonimo identificavel por prefixo estavel, mantendo unicidade por clique; sem CPF.
 - Links de parceiros do shortcode abrem em nova aba.
