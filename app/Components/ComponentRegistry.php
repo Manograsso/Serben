@@ -19,6 +19,9 @@ use SerbenConnect\Components\Financial\PaymentStatusComponent;
 use SerbenConnect\Components\Financial\NextDueDateComponent;
 use SerbenConnect\Components\Cards\PointsCardComponent;
 use SerbenConnect\Components\Cards\CashbackCardComponent;
+use SerbenConnect\Components\Cards\CashBumeCardComponent;
+use SerbenConnect\Components\Cards\NetBumeCardComponent;
+use SerbenConnect\Components\Financial\CashBumeComponent;
 use SerbenConnect\Components\Cards\PlanCardComponent;
 use SerbenConnect\Components\Club\ClubStatusComponent;
 use SerbenConnect\Components\Club\StoreIdComponent;
@@ -66,9 +69,9 @@ class ComponentRegistry
             new EmailComponent(), new PhoneComponent(), new PhotoComponent(),
             new PlanNameComponent(), new PlanStatusComponent(),
             new CardNumberComponent(), new CardStatusComponent(), new CardExpirationComponent(),
-            new PointsComponent(), new CashbackComponent(), new CreditBalanceComponent(),
+            new PointsComponent(), new CashbackComponent(), new CashBumeComponent(), new CreditBalanceComponent(),
             new PaymentStatusComponent(), new NextDueDateComponent(),
-            new PointsCardComponent(), new CashbackCardComponent(), new PlanCardComponent(),
+            new PointsCardComponent(), new CashbackCardComponent(), new CashBumeCardComponent(), new NetBumeCardComponent(), new PlanCardComponent(),
             new ClubStatusComponent(), new StoreIdComponent(), new UsesPointsComponent(),
             new UsesCashbackComponent(), new UsesCreditComponent(), new FastRegistrationComponent(),
             new ContractsComponent(), new CurrentPlanComponent(), new ContractStatusComponent(),

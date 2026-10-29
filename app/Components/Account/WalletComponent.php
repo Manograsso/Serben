@@ -10,8 +10,9 @@ class WalletComponent extends BaseComponent
     public function render(Member $member,array $atts=[]):string
     {
         $html='<div class="serben-wallet serben-components-row">';
-        $html.=$this->card('Pontos',$member->points()->formatted(),'Saldo de pontos');
+        $html.=$this->card('Bumes / Pontos',$member->points()->formatted(),'Saldo de pontos');
         $html.=$this->card('Cashback',$member->cashback()->formatted(),'Saldo disponível');
+        $html.=$this->card('NET BUME / CASH BUME',$member->cashBume()->formatted(),'Bonificação de indicações');
         $html.=$this->card('Crédito',$member->financial()->creditFormatted(),'Limite de crédito');
         $html.=$this->card('Vínculo',$member->hasClub()?'Ativo':'Não localizado','Unidade '.$member->club()->storeId());
         return $html.'</div>';

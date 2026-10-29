@@ -40,7 +40,7 @@ final class EntityMembers {
  }
  public static function upgrade():void {if(get_option('serben_entity_members_schema')!==self::SCHEMA && current_user_can('manage_options')) self::install();}
  private static function context():array {
-  if(!is_user_logged_in()) return [0,false];
+  if(!is_user_logged_in() || !\SerbenConnect\Admin\AccessManagement::accountAllowed(get_current_user_id())) return [0,false];
   $u=wp_get_current_user(); $allowed=['serben_entidade','serben_entidade_diretoria','serben_entidade_secretaria','serben_entidade_atendente'];
   if(!current_user_can('manage_options') && !array_intersect($allowed,(array)$u->roles)) return [0,false];
   $entity=absint(get_user_meta($u->ID,'serben_entity_id',true));

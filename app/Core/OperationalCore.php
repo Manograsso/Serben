@@ -85,7 +85,7 @@ final class OperationalCore {
   update_option('serben_operational_default_entity_rate',(string)max(0,min(100,$rate)));
   wp_safe_redirect(admin_url('options-general.php?page=serben-operational&updated=1')); exit;
  }
- private static function guard(array $roles): bool { $u=wp_get_current_user(); return is_user_logged_in() && (current_user_can('manage_options') || (bool)array_intersect($roles,(array)$u->roles)); }
+ private static function guard(array $roles): bool { $u=wp_get_current_user(); return is_user_logged_in() && \SerbenConnect\Admin\AccessManagement::accountAllowed((int)$u->ID) && (current_user_can('manage_options') || (bool)array_intersect($roles,(array)$u->roles)); }
  public static function entityDashboard(?string $module=null, bool $standalone=false): string {
   if(!self::guard(['serben_entidade','serben_entidade_diretoria','serben_entidade_secretaria','serben_entidade_atendente'])) return '<p>Entre com uma conta de entidade autorizada.</p>';
   global $wpdb;
@@ -155,6 +155,9 @@ final class OperationalCore {
  public static function partnerModule(string $section): string {
   if(!self::guard(['serben_lojista'])) return '<p>Entre com uma conta de lojista autorizada.</p>';
   $uid=get_current_user_id(); $post_id=absint(get_user_meta($uid,'serben_partner_post_id',true));
+  $registered_cnpj=preg_replace('/\D+/', '', (string)get_user_meta($uid,'serben_partner_cnpj',true));
+  $post_cnpj=$post_id ? preg_replace('/\D+/', '', (string)(get_post_meta($post_id,'cnpj_do_parceiro',true) ?: get_post_meta($post_id,'_serben_cnpj',true))) : '';
+  if (!$post_id || get_post_type($post_id)!=='serben_parceiro' || strlen($registered_cnpj)!==14 || $post_cnpj!==$registered_cnpj) return '<p>O vínculo do parceiro precisa ser confirmado pela administração.</p>';
   if(!$post_id || get_post_type($post_id)!=='serben_parceiro')return '<p>Conta sem parceiro válido vinculado. Solicite ao administrador o vínculo com o cadastro da loja.</p>';
   $modules=['perfil'=>'partnerGovernance','conta'=>'partnerWallet','marketing'=>'partnerCoupons'];
   if(isset($modules[$section])){

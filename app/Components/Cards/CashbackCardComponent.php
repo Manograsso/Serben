@@ -15,6 +15,6 @@ class CashbackCardComponent extends BaseComponent
 
     public function render(Member $member, array $atts = []): string
     {
-        return $member->hasClub() ? $this->card('Cashback', $member->cashback()->formatted(), 'Saldo disponível') : $this->card('Cashback', 'Indisponível', $member->club()->message());
+        return $member->cashback()->value() !== null ? $this->card('Cashback', $member->cashback()->formatted(), 'Saldo disponível') : $this->card('Cashback', 'Indisponível', $member->club()->message());
     }
 }

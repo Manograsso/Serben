@@ -15,6 +15,6 @@ class PointsCardComponent extends BaseComponent
 
     public function render(Member $member, array $atts = []): string
     {
-        return $member->hasClub() ? $this->card('Pontos', $member->points()->formatted(), 'Saldo atual') : $this->card('Pontos', 'Indisponível', $member->club()->message());
+        return $member->points()->value() !== null ? $this->card('Pontos', $member->points()->formatted(), 'Saldo atual') : $this->card('Pontos', 'Indisponível', $member->club()->message());
     }
 }

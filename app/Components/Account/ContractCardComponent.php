@@ -10,7 +10,7 @@ class ContractCardComponent extends BaseComponent
     protected $description='Resumo do contrato e plano atual.';
     public function render(Member $member,array $atts=[]):string
     {
-        $items=(new ContractsProvider())->get($member->profile()->cpfRaw())['items']??[];
+        $items=(new ContractsProvider())->get($member->profile()->cpf())['items']??[];
         $c=$items[0]??[];
         $plan=$c['nome_plano']??$c['nomePlano']??$member->plan()->name();
         $status=$c['situacao_contrato']??$c['status_contrato']??'—';
