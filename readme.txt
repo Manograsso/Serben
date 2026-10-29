@@ -2,7 +2,7 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.0.7
+Stable tag: 2.0.8
 License: GPLv2 or later
 
 Portal operacional do Clube SerBen em WordPress: integrações SerBen, associados, parceiros, entidades, credenciamento, dashboards, Awin e Elementor.
@@ -341,8 +341,13 @@ Versão 1.8.1: nomenclatura NET BUME / CASH BUME para CCI. Bumes/Pontos permanec
 * Para ClickRef CPF reutilizado, identifica o parceiro pelo advertiserId da transação.
 * Atenção LGPD: CPF passa a constar em URL AWIN, registros locais e relatórios externos.
 
-== 2.0.7 — Referência de origem e diagnóstico WP-Cron ==
+== 2.0.8 — Referência de origem e diagnóstico WP-Cron ==
 * Links AWIN em nova aba deixam de usar noreferrer e adotam referrerpolicy origin.
 * Redirecionamento AWIN solicita política Referrer-Policy origin; URL de origem na AWIN depende do navegador e da rede.
 * Cron registra início, término e resultado, com diagnóstico da configuração DISABLE_WP_CRON.
 * Mantido ClickRef CPF e crédito exclusivo do aplicativo SerBen.
+
+== 2.0.8 — Correção de componentes de contratos ==
+
+* Corrigidas chamadas ao método inexistente Profile::cpfRaw() em quatro componentes; passam a utilizar Profile::cpf().
+* Mantidas as integrações AWIN e regras de crédito exclusivamente pelo app.
