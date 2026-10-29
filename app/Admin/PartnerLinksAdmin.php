@@ -48,7 +48,7 @@ final class PartnerLinksAdmin
         $userId=absint($_GET['user_id']??0);
         if(!current_user_can('manage_options')||!wp_verify_nonce($_GET['_wpnonce']??'','serben_unlink_partner_'.$userId)){wp_die('Acesso negado.');}
         $postId=(int)get_user_meta($userId,'serben_partner_post_id',true);
-        if($postId){delete_post_meta($postId,'_serben_wp_user_id');delete_post_meta($postId,'_serben_store_id');}
+        if($postId && (int)get_post_meta($postId,'_serben_wp_user_id',true)===$userId){delete_post_meta($postId,'_serben_wp_user_id');}
         delete_user_meta($userId,'serben_partner_post_id');
         wp_safe_redirect(admin_url('admin.php?page=serben-connect-links&updated=1'));exit;
     }

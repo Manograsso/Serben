@@ -27,6 +27,8 @@ use SerbenConnect\Integrations\Elementor\ElementorIntegration;
 use SerbenConnect\Partners\Portal\PartnerPortal;
 use SerbenConnect\Partners\Permissions\PartnerPermissions;
 use SerbenConnect\Admin\PartnerLinksAdmin;
+use SerbenConnect\Admin\PartnersManagement;
+use SerbenConnect\Admin\AccessManagement;
 use SerbenConnect\Integrations\Awin\Database as AwinDatabase;
 use SerbenConnect\Integrations\Awin\PartnerMeta as AwinPartnerMeta;
 use SerbenConnect\Integrations\Awin\TrackingService as AwinTrackingService;
@@ -95,6 +97,8 @@ final class Plugin
         (new PartnerPortal())->register();
         (new PartnerPermissions())->register();
         (new PartnerLinksAdmin())->register();
+        PartnersManagement::register();
+        (new AccessManagement())->register();
         (new AwinPartnerMeta())->register();
         (new AwinTrackingService())->register();
         (new AwinShortcodes())->register();
