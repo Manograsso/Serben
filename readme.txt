@@ -2,10 +2,21 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.0.8
+Stable tag: 2.1.3
 License: GPLv2 or later
 
 Portal operacional do Clube SerBen em WordPress: integrações SerBen, associados, parceiros, entidades, credenciamento, dashboards, Awin e Elementor.
+
+== Novidades 2.1.3 ==
+
+* Modelo híbrido de acesso: convites administrativos e solicitações públicas, com aprovação.
+* `[serben_access_request]`: solicitação pública; `[serben_partner_login]`: login por e-mail e senha WordPress.
+* Gestão de acessos no painel administrativo e validação de vínculo local por CNPJ.
+* Gerenciamento manual e exportação CSV do catálogo de parceiros.
+* Consulta de portadores restrita a CPF (11 dígitos); CNPJ não é enviado ao endpoint de portadores.
+* Melhorias no retorno do formulário e na identificação de solicitações duplicadas.
+* Autenticação e permissões do aplicativo externo SerBen não são compartilhadas com o WordPress.
+* Créditos financeiros AWIN não são efetuados pelo WordPress.
 
 == Descrição ==
 
@@ -13,11 +24,11 @@ O Clube Serben Connect centraliza a integração do WordPress com os serviços S
 
 Entre os principais recursos estão:
 
-* Login e identificação de associados por CPF/CNPJ.
+* Login e identificação de associados por CPF; acesso de parceiros e entidades por conta WordPress vinculada ao CNPJ.
 * Integração com a API oficial Serben `/api/integracao/*`.
 * Consulta de Portadores por documento.
 * Integração com Clube de Benefícios: planos, produtos, empresas parceiras, contratos e cupons.
-* Compatibilidade temporária com a API legada de Fidelidade para pontos, cashback e crédito de cashback.
+* Compatibilidade temporária com a API legada de Fidelidade para consultas e rotinas documentadas; crédito financeiro AWIN pelo WordPress desativado.
 * Health Check oficial da integração Serben.
 * Portal e autenticação de parceiros/lojistas.
 * Integração com parceiros cadastrados via JetEngine/CPT.
@@ -79,6 +90,27 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 * O cliente da nova API trata HTTP 429 e respeita informações de `Retry-After`, evitando retentativas agressivas.
 
 == Changelog ==
+
+= 2.1.3 =
+* Mensagens de retorno de solicitações de acesso e tratamento de duplicidade/limitação.
+* Evita consulta de portadores com CNPJ; endpoint exige CPF.
+* Mensagens administrativas mais claras para ausência/duplicidade de parceiro por CNPJ.
+
+= 2.1.2 =
+* Compatibilidade de login de contas antigas não gerenciadas.
+* Aprovação de parceiro condicionada a cadastro único por CNPJ e vínculo válido.
+* Proteções adicionais para vinculação institucional de entidades.
+
+= 2.1.0 =
+* Acesso híbrido por convite ou solicitação, com aprovação administrativa.
+* Login de parceiros e entidades por e-mail e senha WordPress.
+
+= 2.0.9 =
+* Gestão manual e exportação CSV dos parceiros do catálogo.
+
+= 2.0.8 =
+* Correção do método de CPF nos componentes de contratos.
+
 
 = 1.7.3 =
 * Formulários públicos de solicitação de credenciamento para Parceiros e Entidades.
