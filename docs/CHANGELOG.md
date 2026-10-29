@@ -1,3 +1,11 @@
+## 2.1.3
+
+- Solicitações: retorno visível com redirecionamento 303, URL explícita e parâmetro ant-cache.
+- Feedback específico para pedidos já pendentes e limite temporário de envios.
+- Consulta de portadores restrita a CPF (11 dígitos); CNPJ de parceiro/entidade não é enviado à rota de pessoas físicas.
+- Mensagem administrativa mais clara quando parceiro não consta de forma única no catálogo; link direto para gestão de parceiros.
+- Aprovação continua bloqueada sem vínculo inequívoco ao CNPJ.
+
 # 1.4.8
 - Corrige autenticação Serben: o header `IDENTIFIER` passa a ser enviado exatamente uma vez (antes eram enviados `IDENTIFIER` e `identifier`, que podem ser mesclados pelo servidor).
 - Padroniza o header da chave como `X-API-KEY` e aplica `trim()` nas credenciais antes do envio.
