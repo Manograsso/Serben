@@ -23,7 +23,7 @@ class ProfileProvider
             return ['data' => [], 'http_code' => 0, 'found' => false];
         }
 
-        $key = 'profile_' . md5($cpf);
+        $key = 'profile_v180_' . md5($cpf);
         if (!$forceRefresh) {
             $cached = $this->cache->get($key);
             if (is_array($cached)) {

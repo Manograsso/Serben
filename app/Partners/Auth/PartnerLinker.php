@@ -21,14 +21,20 @@ final class PartnerLinker
             'suppress_filters' => false,
         ]);
 
-        $postId = 0;
+        $matches = [];
         foreach ($ids as $candidateId) {
-            $candidateCnpj = preg_replace('/\D+/', '', (string) get_post_meta((int) $candidateId, 'cnpj_do_parceiro', true));
-            if ($candidateCnpj === $cnpj) {
-                $postId = (int) $candidateId;
-                break;
+            foreach (['cnpj_do_parceiro','_serben_cnpj'] as $field) {
+                $candidateCnpj = preg_replace('/\D+/', '', (string)get_post_meta((int)$candidateId, $field, true));
+                if ($candidateCnpj !== '' && $candidateCnpj === $cnpj) {
+                    $matches[(int)$candidateId] = true;
+                    break;
+                }
             }
         }
+        if (count($matches) > 1) {
+            return ['ok'=>false,'post_id'=>0,'message'=>'Há mais de um parceiro com este CNPJ. Resolva a duplicidade antes de vincular.'];
+        }
+        $postId = $matches ? (int)array_key_first($matches) : 0;
 
         if (!$postId) {
             return ['ok' => false, 'post_id' => 0, 'message' => 'Nenhum parceiro foi encontrado com este CNPJ.'];
@@ -37,7 +43,11 @@ final class PartnerLinker
         update_user_meta($userId, 'serben_partner_post_id', $postId);
         update_user_meta($userId, 'serben_partner_cnpj', $cnpj);
         if ($storeId) { update_user_meta($userId, 'serben_store_id', $storeId); }
-        update_post_meta($postId, '_serben_wp_user_id', $userId);
+        // Keep the existing primary user when a company has multiple approved contacts.
+        $primary = (int)get_post_meta($postId, '_serben_wp_user_id', true);
+        if (!$primary || !get_userdata($primary)) {
+            update_post_meta($postId, '_serben_wp_user_id', $userId);
+        }
         if ($storeId) { update_post_meta($postId, '_serben_store_id', $storeId); }
         return ['ok' => true, 'post_id' => $postId, 'store_id' => $storeId, 'message' => 'Parceiro vinculado com sucesso.'];
     }

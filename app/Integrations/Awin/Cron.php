@@ -23,7 +23,16 @@ final class Cron
     public function runTransactions(): void
     {
         if (!$this->enabled()) { return; }
-        (new TransactionSync())->sync();
+        update_option('serben_awin_cron_started', current_time('mysql'), false);
+        try {
+            $result = (new TransactionSync())->sync();
+            update_option('serben_awin_last_cron_result', $result, false);
+        } catch (\Throwable $e) {
+            update_option('serben_awin_last_cron_result', ['ok'=>false, 'error'=>'Erro interno durante sincronização automática'], false);
+            error_log('SerBen AWIN cron: '. $e->getMessage());
+        } finally {
+            update_option('serben_awin_last_cron_run', current_time('mysql'), false);
+        }
     }
 
     public function runPrograms(): void

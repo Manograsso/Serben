@@ -138,6 +138,99 @@ final class Admin
         exit;
     }
 
+    private function renderTransactionDiagnostics(): void
+    {
+        global $wpdb;
+        $clicks = $wpdb->prefix . 'serben_awin_clicks';
+        $txTable = $wpdb->prefix . 'serben_awin_transactions';
+        $ref = sanitize_text_field(wp_unslash($_GET['serben_awin_ref'] ?? ''));
+        $ref = substr($ref, 0, 80);
+        $next = wp_next_scheduled('serben_awin_hourly');
+        $last = get_option('serben_awin_last_transaction_sync', []);
+        echo '<hr><h2>Diagnóstico de transações e cashback</h2><div class="notice notice-info inline"><p><strong>Crédito AWIN exclusivo do aplicativo SerBen.</strong> O WordPress apenas rastreia cliques e sincroniza transações; não envia solicitações de crédito. O status external_app indica encaminhamento para acompanhamento, não comprova crédito na carteira.</p></div>';
+        echo '<p>Agendamento horário: <strong>' . ($next ? esc_html(wp_date('d/m/Y H:i:s', $next)) : 'Não agendado') . '</strong>; sincronização automática: <strong>' . (Settings::get('awin_sync_enabled', '1') === '1' ? 'Habilitada' : 'Desabilitada') . '</strong>.</p>';
+        if (is_array($last) && $last) {
+            echo '<p>Última execução registrada: ' . esc_html((string)($last['at'] ?? '—')) . ' (' . esc_html((string)($last['source'] ?? '—')) . '); resultado: ' . esc_html(wp_json_encode($last['result'] ?? [])) . '</p>';
+        }
+        // Operational reconciliation: show approved but not credited, failed API calls and pending commissions.
+        $pendingCount = (int)$wpdb->get_var("SELECT COUNT(*) FROM {$txTable} WHERE status='pending' AND serben_status<>'credited'");
+        $exceptions = $wpdb->get_results("SELECT awin_transaction_id, status, serben_status, user_id, cashback_cents, updated_at FROM {$txTable} WHERE (status='approved' AND serben_status NOT IN ('credited','external_app')) OR serben_status IN ('error','missing_click','missing_user','missing_document','manual_currency','cashback_disabled','missing_percent') ORDER BY updated_at DESC LIMIT 25", ARRAY_A);
+        $lastCron = get_option('serben_awin_last_cron_run', '');
+        $lastCronTs = $lastCron ? strtotime((string)$lastCron) : 0;
+        $cronEnabled = Settings::get('awin_sync_enabled', '1') === '1';
+        $cronHealthy = $next && $cronEnabled && $lastCronTs && (time() - $lastCronTs) < 3 * HOUR_IN_SECONDS;
+        $cronStarted = get_option('serben_awin_cron_started', '');
+        $cronResult = get_option('serben_awin_last_cron_result', []);
+        $wpCronDisabled = defined('DISABLE_WP_CRON') && DISABLE_WP_CRON;
+        echo '<p>WP-Cron interno: <strong>' . ($wpCronDisabled ? 'Desabilitado (exige cron real na hospedagem)' : 'Habilitado (depende de visitas ou cron real)') . '</strong>. Último início automático: <strong>' . esc_html($cronStarted ?: 'Nunca registrado') . '</strong>. Resultado da última tentativa automática: <code>' . esc_html(wp_json_encode($cronResult)) . '</code></p>';
+        echo '<p><em>Uma transação aparecer somente após sincronização manual não prova falha: a AWIN pode disponibilizá-la com atraso. Compare os horários da última execução automática e o resultado da consulta.</em></p>';
+        echo '<h3>Monitoramento e conciliação</h3>';
+        echo '<p>Última execução automática: <strong>' . esc_html($lastCron ?: 'Nunca registrada') . '</strong>. Estado do agendamento: <strong>' . esc_html(!$cronEnabled ? 'Desativado' : ($cronHealthy ? 'Executado recentemente' : 'Requer verificação (WP-Cron depende de visitas ou cron real)')) . '</strong>. Transações pendentes: <strong>' . esc_html((string)$pendingCount) . '</strong>. Exceções encontradas: <strong>' . esc_html((string)count($exceptions)) . '</strong> (até 25 exibidas).</p>';
+        if ($exceptions) {
+            echo '<table class="widefat striped"><thead><tr><th>Transação</th><th>Status AWIN</th><th>Status SerBen</th><th>Usuário</th><th>Cashback previsto</th><th>Atualizado em</th></tr></thead><tbody>';
+            foreach ($exceptions as $ex) echo '<tr><td>' . esc_html((string)$ex['awin_transaction_id']) . '</td><td>' . esc_html((string)$ex['status']) . '</td><td>' . esc_html((string)$ex['serben_status']) . '</td><td>' . esc_html((string)$ex['user_id']) . '</td><td>R$ ' . esc_html(number_format(((int)$ex['cashback_cents'])/100,2,',','.')) . '</td><td>' . esc_html((string)$ex['updated_at']) . '</td></tr>';
+            echo '</tbody></table>';
+        } else echo '<p>Nenhuma transação aprovada sem crédito ou com erro foi encontrada no banco local.</p>';
+        echo '<p><em>O monitoramento é local ao WordPress; não envia e-mails. O status da AWIN é atualizado na sincronização. Para horários confiáveis, configure cron real na hospedagem.</em></p>';
+        echo '<form method="get"><input type="hidden" name="page" value="serben-connect-awin"><label>Pesquisar Click Reference: <input type="text" name="serben_awin_ref" value="' . esc_attr($ref) . '" size="38" maxlength="80"></label> <button class="button">Pesquisar</button></form>';
+        if ($ref !== '') {
+            $click = $wpdb->get_row($wpdb->prepare("SELECT id,user_id,partner_id,advertiser_id,created_at FROM {$clicks} WHERE click_ref=%s LIMIT 1", $ref), ARRAY_A);
+            echo '<p>Registro de clique: <strong>' . ($click ? 'Encontrado (usuário WP #' . esc_html((string)$click['user_id']) . ', parceiro #' . esc_html((string)$click['partner_id']) . ')' : 'Não encontrado') . '</strong>.</p>';
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$txTable} WHERE click_ref=%s ORDER BY id DESC LIMIT 30", $ref), ARRAY_A);
+        } else {
+            $rows = $wpdb->get_results("SELECT * FROM {$txTable} ORDER BY updated_at DESC LIMIT 30", ARRAY_A);
+        }
+        // Diagnóstico somente leitura: compara o registro local com o payload atual da AWIN.
+        $diagId = preg_replace('/[^0-9]/', '', (string)($_GET['serben_awin_tx_id'] ?? ''));
+        echo '<hr><h3>Conferência direta na AWIN (sem efetuar crédito)</h3>';
+        echo '<form method="get"><input type="hidden" name="page" value="serben-connect-awin"><label>ID da transação AWIN: <input name="serben_awin_tx_id" value="' . esc_attr($diagId) . '" inputmode="numeric" pattern="[0-9]+" maxlength="30"></label> <button class="button">Consultar AWIN</button></form>';
+        if ($diagId !== '') {
+            $local = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$txTable} WHERE awin_transaction_id=%s LIMIT 1", $diagId), ARRAY_A);
+            if ($local) {
+                $safe = [];
+                foreach (['awin_transaction_id','advertiser_id','partner_id','user_id','click_ref','status','currency','sale_amount','cashback_percent','cashback_cents','serben_status','transaction_date'] as $k) $safe[$k] = $local[$k] ?? null;
+                echo '<h4>Registro local</h4><pre>' . esc_html(wp_json_encode($safe, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
+                if (!empty($local['click_ref'])) {
+                    $hasClick = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$clicks} WHERE click_ref=%s", $local['click_ref']));
+                    echo '<p>Correspondência do clique local: <strong>' . ($hasClick ? 'Sim' : 'Não') . '</strong></p>';
+                }
+            } else echo '<p>Transação não encontrada na tabela local.</p>';
+            $pub = (string)Settings::get('awin_publisher_id');
+            $from = $local && !empty($local['transaction_date']) ? strtotime($local['transaction_date'] . ' UTC') : time() - 14 * DAY_IN_SECONDS;
+            $start = gmdate('Y-m-d\TH:i:s', $from - DAY_IN_SECONDS);
+            $end = gmdate('Y-m-d\TH:i:s', min(time() + DAY_IN_SECONDS, $from + 4 * DAY_IN_SECONDS));
+            $api = (new Client())->get('publishers/' . $pub . '/transactions/', ['startDate'=>$start,'endDate'=>$end,'timezone'=>'UTC','dateType'=>'transaction']);
+            echo '<p>Consulta AWIN: HTTP ' . esc_html((string)($api['code'] ?? 0)) . '; intervalo UTC: ' . esc_html($start . ' a ' . $end) . '.</p>';
+            if (!empty($api['ok']) && is_array($api['body'])) {
+                $items = $api['body']['transactions'] ?? $api['body']['pageItems'] ?? $api['body'];
+                $found = null;
+                foreach ((array)$items as $item) {
+                    if (is_array($item) && (string)($item['transactionId'] ?? $item['id'] ?? $item['transactionID'] ?? '') === $diagId) { $found = $item; break; }
+                }
+                if ($found !== null) {
+                    // Mostrar somente estrutura e campos operacionais; jamais o payload bruto com dados pessoais.
+                    $operational = [];
+                    foreach (['transactionId','id','status','transactionStatus','commissionStatus','clickRef','clickRefs','clickref','clickReference','advertiserId','transactionDate','saleAmount','commissionAmount','currency'] as $key) {
+                        if (array_key_exists($key, $found)) $operational[$key] = $key === 'clickRefs' ? '[presente: conferir associação após sincronização]' : $found[$key];
+                    }
+                    echo '<p><strong>Transação localizada na resposta da AWIN.</strong></p>';
+                    echo '<p>Chaves recebidas: <code>' . esc_html(implode(', ', array_keys($found))) . '</code></p>';
+                    echo '<pre>' . esc_html(wp_json_encode($operational, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
+                    echo '<p>Esta consulta não modifica a transação nem envia cashback.</p>';
+                } else echo '<p>Transação não encontrada na janela consultada. Isso não comprova ausência na AWIN (pode haver paginação ou diferença de data).</p>';
+            } else echo '<p>Não foi possível consultar a AWIN. Verifique o token e o retorno HTTP.</p>';
+        }
+        echo '<p>Transações locais (máximo 30). A busca consulta o banco do WordPress, não a AWIN em tempo real.</p>';
+        echo '<table class="widefat striped"><thead><tr><th>ID AWIN</th><th>Data</th><th>ClickRef</th><th>Usuário WP</th><th>Status AWIN</th><th>Cashback</th><th>Status SerBen</th><th>Diagnóstico</th></tr></thead><tbody>';
+        foreach ((array)$rows as $r) {
+            $reason = (string)($r['serben_status'] ?? '');
+            $reasonText = ['waiting'=>'Aguardando elegibilidade / verificar percentual, vínculo e status', 'missing_click'=>'ClickRef sem vínculo local', 'cashback_disabled'=>'Cashback desabilitado no parceiro', 'missing_percent'=>'Percentual de cashback ausente', 'missing_user'=>'Usuário não identificado', 'missing_document'=>'CPF do usuário ausente', 'manual_currency'=>'Moeda exige análise manual', 'error'=>'Falha na API SerBen; verificar log protegido', 'credited'=>'Crédito registrado', 'declined'=>'Recusada/cancelada na AWIN', 'pending'=>'Pendente na AWIN', 'external_app'=>'Aguardando processamento pelo aplicativo SerBen (sem crédito pelo WordPress)', 'zero_cashback'=>'Cashback calculado igual a zero'][$reason] ?? $reason;
+            echo '<tr><td>' . esc_html((string)$r['awin_transaction_id']) . '</td><td>' . esc_html((string)$r['transaction_date']) . '</td><td><code>' . esc_html((string)$r['click_ref']) . '</code></td><td>' . esc_html((string)$r['user_id']) . '</td><td>' . esc_html((string)$r['status']) . '</td><td>' . esc_html(number_format(((int)$r['cashback_cents'])/100, 2, ',', '.')) . '</td><td>' . esc_html($reason) . '</td><td>' . esc_html($reasonText) . '</td></tr>';
+        }
+        if (!$rows) echo '<tr><td colspan="8">Nenhuma transação local encontrada para esta pesquisa.</td></tr>';
+        echo '</tbody></table>';
+    }
+
     public function page(): void
     {
         $s = Settings::all();
@@ -146,11 +239,13 @@ final class Admin
         $count = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}serben_awin_transactions");
         $credited = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}serben_awin_transactions WHERE serben_status='credited'");
 
-        echo '<div class="wrap"><h1>Awin + Cashback Serben</h1><p>Publisher <strong>' . esc_html($s['awin_publisher_id']) . '</strong>. Transações locais: ' . $count . '; creditadas na Serben: ' . $credited . '.</p>';
+        echo '<div class="wrap"><h1>Awin + Cashback Serben</h1><p>Publisher <strong>' . esc_html($s['awin_publisher_id']) . '</strong>. Transações locais: ' . $count . '; historicamente marcadas como creditadas: ' . $credited . '.</p>';
 
         if (is_array($last)) {
             echo '<div class="notice notice-info"><p><strong>Última ação:</strong> ' . esc_html($last['action']) . '</p><pre style="white-space:pre-wrap;max-height:360px;overflow:auto">' . esc_html(print_r($last['result'], true)) . '</pre></div>';
         }
+
+        $this->renderTransactionDiagnostics();
 
         echo '<p>Use Configurações para informar o token. A sincronização mantém o status do WordPress alinhado à Awin: <strong>Active = publicado</strong>; Hidden, outros estados ou programas que deixarem de aparecer entre os joined = <strong>rascunho/desativado</strong>. Parceiros sem vínculo Awin não são alterados.</p>';
 

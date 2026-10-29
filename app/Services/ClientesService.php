@@ -234,6 +234,7 @@ class ClientesService
                 'saldo_credito',
                 'limite_credito',
                 'saldo_cashback_liberado',
+                'saldo_cci_liberado', 'saldo_cci_disponivel', 'saldo_cci',
                 'saldo_pontos_liberado',
             ] as $key) {
                 if (array_key_exists($key, $active)) {

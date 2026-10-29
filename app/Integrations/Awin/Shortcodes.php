@@ -38,12 +38,12 @@ final class Shortcodes
             // Parceiro gerenciado pela Awin: se não estiver Active, não deve gerar link no frontend.
             if ($awinStatus !== 'active') { return ''; }
 
-            if ($cashbackEnabled && $cashbackPercent > 0) {
+            if (is_user_logged_in()) {
                 $url = (new TrackingService())->url($id, $destination);
                 $isTrackedCashback = true;
                 if ($text === '') {
                     $pct = rtrim(rtrim(number_format($cashbackPercent, 2, ',', ''), '0'), ',');
-                    $text = 'Comprar e ganhar ' . $pct . '% de cashback';
+                    $text = ($cashbackEnabled && $cashbackPercent > 0) ? 'Comprar e ganhar ' . $pct . '% de cashback' : 'Acessar parceiro';
                 }
             } else {
                 $url = (string) get_post_meta($id, 'awin_click_through_url', true);
@@ -64,7 +64,7 @@ final class Shortcodes
         if ($isTrackedCashback) { $classes .= ' serben-awin-link'; }
         if ($a['class'] !== '') { $classes .= ' ' . sanitize_html_class((string) $a['class']); }
 
-        return '<a class="' . esc_attr($classes) . '" href="' . esc_url($url) . '" rel="sponsored nofollow">' . esc_html($text) . '</a>';
+        return '<a class="' . esc_attr($classes) . '" href="' . esc_url($url) . '" target="_blank" rel="noopener sponsored nofollow" referrerpolicy="origin">' . esc_html($text) . '</a>';
     }
 
     public function history($atts = []): string

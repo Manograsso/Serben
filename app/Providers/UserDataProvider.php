@@ -29,7 +29,14 @@ class UserDataProvider
             return null;
         }
 
-        $userId = get_current_user_id();
+        return $this->forUser(get_current_user_id(), $forceRefresh);
+    }
+
+    /** Consulta um usuário específico sem trocar a sessão WordPress. */
+    public function forUser(int $userId, bool $forceRefresh = false): ?Member
+    {
+        if (!$userId || !get_userdata($userId)) { return null; }
+        if (!$forceRefresh && $userId === get_current_user_id() && self::$current instanceof Member) { return self::$current; }
         $document = $this->resolveDocument($userId);
         if (!$document) {
             Logger::add('warning', 'DATA', 'UserDataProvider/current', 0, 'Logged user has no Serben document', [
@@ -45,6 +52,30 @@ class UserDataProvider
 
         $profile = $this->profileProvider->get($document, $forceRefresh);
         $cliente = is_array($profile['data'] ?? null) ? $profile['data'] : [];
+        // Defensive normalization: cached/legacy responses can retain cartoes nested.
+        // The official Portadores API returns balances in response.cartoes[0].
+        if (isset($cliente['cartoes']) && is_array($cliente['cartoes'])) {
+            $selected = null;
+            foreach ($cliente['cartoes'] as $candidate) {
+                if (!is_array($candidate)) { continue; }
+                if (in_array(strtolower(trim((string) ($candidate['status'] ?? ''))), ['ativo', 'active', '1'], true)) {
+                    $selected = $candidate;
+                    break;
+                }
+            }
+            if ($selected === null) {
+                foreach ($cliente['cartoes'] as $candidate) {
+                    if (is_array($candidate)) { $selected = $candidate; break; }
+                }
+            }
+            if (is_array($selected)) {
+                foreach (['numero_cartao', 'saldo_cashback_liberado', 'saldo_pontos_liberado', 'saldo_cci_liberado', 'saldo_cci_disponivel', 'saldo_cci'] as $key) {
+                    if (array_key_exists($key, $selected)) { $cliente[$key] = $selected[$key]; }
+                }
+                $cliente['status_cartao'] = $selected['status'] ?? ($cliente['status_cartao'] ?? '');
+            }
+        }
+
 
         // v1.5.1: a nova rota de Portadores já devolve cartão e saldos.
         // Reaproveita a mesma resposta para o clube, evitando uma segunda
@@ -63,11 +94,8 @@ class UserDataProvider
             'source' => 'integration_portadores',
         ];
 
-        if (empty($cliente)) {
-            $json = get_user_meta($userId, 'serben_cliente_data', true);
-            $stored = is_string($json) ? json_decode($json, true) : null;
-            $cliente = is_array($stored) ? $stored : [];
-        }
+        // Não utilizar saldos locais antigos quando a consulta atual não retorna dados.
+        // Isso evita exibir valores desatualizados como se fossem da API.
 
         if (!empty($cliente)) {
             update_user_meta($userId, 'serben_cliente_data', wp_json_encode($cliente));
@@ -76,8 +104,10 @@ class UserDataProvider
 
         Logger::add('info', 'DATA', 'UserDataProvider/current', 200, 'Member built from modular providers', [
             'user_id' => $userId,
-            'document' => $document,
+            'document_last4' => substr($document, -4),
             'profile_http' => $profile['http_code'] ?? null,
+            'has_cashback_field' => array_key_exists('saldo_cashback_liberado', $cliente),
+            'has_points_field' => array_key_exists('saldo_pontos_liberado', $cliente),
             'profile_found' => $profile['found'] ?? false,
             'club_http' => $club['http_code'] ?? null,
             'club_linked' => $club['linked'] ?? false,
@@ -86,8 +116,9 @@ class UserDataProvider
             'club_response_keys' => array_slice(array_keys(is_array($club['raw'] ?? null) ? $club['raw'] : []), 0, 20),
         ]);
 
-        self::$current = new Member($cliente, is_array($club['data'] ?? null) ? $club['data'] : [], $club);
-        return self::$current;
+        $member = new Member($cliente, is_array($club['data'] ?? null) ? $club['data'] : [], $club);
+        if ($userId === get_current_user_id()) { self::$current = $member; }
+        return $member;
     }
 
     public function clearCurrent(): void
@@ -99,6 +130,9 @@ class UserDataProvider
         if (!$document) { return; }
 
         $this->cache->delete('profile_' . md5($document));
+        $this->cache->delete('profile_v176_' . md5($document));
+        $this->cache->delete('profile_v177_' . md5($document));
+        $this->cache->delete('profile_v180_' . md5($document));
         $idLoja = (string) \SerbenConnect\Support\Settings::get('id_loja');
         $this->cache->delete('club_v3_' . md5($document));
         $this->cache->delete('club_v2_' . md5($document . '|' . $idLoja));
@@ -113,12 +147,11 @@ class UserDataProvider
             'serben_cpf',
             'cpf',
             'billing_cpf',
-            'billing_cnpj',
         ];
 
         foreach ($keys as $key) {
             $value = preg_replace('/\D+/', '', (string) get_user_meta($userId, $key, true));
-            if (strlen($value) === 11 || strlen($value) === 14) {
+            if (strlen($value) === 11) {
                 return $value;
             }
         }

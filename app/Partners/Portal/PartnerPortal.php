@@ -104,7 +104,7 @@ final class PartnerPortal
         if(!isset($_POST['serben_partner_nonce'])||!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['serben_partner_nonce'])),'serben_partner_update_store')){wp_die('Requisição inválida.');}
         $linked=(int)get_user_meta(get_current_user_id(),'serben_partner_post_id',true);
         $postId=absint($_POST['post_id']??0);
-        if(!$linked||$linked!==$postId){wp_die('Você não pode editar este parceiro.');}
+        if(!$linked||$linked!==$postId||!$this->validPartnerPost($linked)){wp_die('Você não pode editar este parceiro.');}
         $fields=is_array($_POST['fields']??null)?wp_unslash($_POST['fields']):[];
         foreach(self::ALLOWED_FIELDS as $key){
             if(!array_key_exists($key,$fields)){continue;}
@@ -129,10 +129,24 @@ final class PartnerPortal
     {
         if(!$this->isPartner()){return ['ok'=>false,'message'=>$this->loginMessage(),'post_id'=>0];}
         $postId=(int)get_user_meta(get_current_user_id(),'serben_partner_post_id',true);
-        if(!$postId||!get_post($postId)){return ['ok'=>false,'message'=>'<div class="serben-message serben-error">Seu usuário ainda não está vinculado a um parceiro.</div>','post_id'=>0];}
+        if(!$postId||!$this->validPartnerPost($postId)){return ['ok'=>false,'message'=>'<div class="serben-message serben-error">Seu usuário ainda não está vinculado a um parceiro.</div>','post_id'=>0];}
         return ['ok'=>true,'message'=>'','post_id'=>$postId];
     }
-    private function isPartner(): bool { $u=wp_get_current_user(); return $u->exists()&&in_array('serben_lojista',(array)$u->roles,true); }
+    private function validPartnerPost(int $postId): bool {
+        $post = get_post($postId);
+        if (!$post || $post->post_type !== 'serben_parceiro') { return false; }
+        $cnpj = preg_replace('/\D+/', '', (string)get_user_meta(get_current_user_id(),'serben_partner_cnpj',true));
+        if (strlen($cnpj) !== 14) { return false; }
+        foreach (['cnpj_do_parceiro','_serben_cnpj'] as $field) {
+            if (preg_replace('/\D+/', '', (string)get_post_meta($postId,$field,true)) === $cnpj) { return true; }
+        }
+        return false;
+    }
+    private function isPartner(): bool {
+        $u=wp_get_current_user();
+        return $u->exists() && in_array('serben_lojista',(array)$u->roles,true)
+            && \SerbenConnect\Admin\AccessManagement::accountAllowed((int)$u->ID);
+    }
     private function loginMessage(): string { return '<div class="serben-message">Faça login como parceiro para visualizar.</div>'; }
     private function card(string $label,string $value,string $description): string { return '<div class="serben-component-card"><span class="serben-component-label">'.esc_html($label).'</span><strong class="serben-component-value">'.esc_html($value?:'—').'</strong>'.($description?'<small>'.$description.'</small>':'').'</div>'; }
     private function formatCnpj(string $v): string { $v=preg_replace('/\D+/','',$v); return strlen($v)===14?substr($v,0,2).'.'.substr($v,2,3).'.'.substr($v,5,3).'/'.substr($v,8,4).'-'.substr($v,12,2):$v; }

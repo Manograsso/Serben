@@ -157,8 +157,29 @@ final class DashboardModulesShortcodes
         $c=$this->partnerContext();if(!$c['ok']||!isset($_POST['nonce'])||!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])),'serben_bume_coupon'))wp_die('Acesso negado.');$limit=$this->couponLimit($this->partnerPlan());if($limit===0)wp_die('Seu plano não permite cupons.');$q=new \WP_Query(['post_type'=>'serben_bume_cupom','post_status'=>'publish','author'=>get_current_user_id(),'posts_per_page'=>-1,'fields'=>'ids']);if($limit>0&&$q->found_posts>=$limit)wp_die('Limite de cupons ativos atingido.');$id=wp_insert_post(['post_type'=>'serben_bume_cupom','post_status'=>'publish','post_author'=>get_current_user_id(),'post_title'=>sanitize_text_field(wp_unslash($_POST['title']??'')),'post_content'=>sanitize_textarea_field(wp_unslash($_POST['description']??''))]);if(is_wp_error($id))wp_die('Não foi possível criar o cupom.');foreach(['value','valid_until','schedule','stock'] as $k)update_post_meta($id,'serben_coupon_'.$k,sanitize_text_field(wp_unslash($_POST[$k]??'')));update_post_meta($id,'serben_partner_post_id',$c['post_id']);$this->back('serben_coupon_created');
     }
 
-    private function partnerContext(): array { $u=wp_get_current_user();if(!$u->exists()||(!in_array('serben_lojista',(array)$u->roles,true)&&!current_user_can('manage_options')))return ['ok'=>false,'post_id'=>0,'message'=>'<div class="serben-message">Faça login como parceiro para visualizar.</div>'];$id=(int)get_user_meta($u->ID,'serben_partner_post_id',true);if(!$id)return ['ok'=>false,'post_id'=>0,'message'=>'<div class="serben-message serben-error">Usuário sem parceiro vinculado.</div>'];return ['ok'=>true,'post_id'=>$id,'message'=>'']; }
-    private function isEntity(): bool { $u=wp_get_current_user();return $u->exists()&&(in_array('serben_entidade',(array)$u->roles,true)||current_user_can('manage_options')); }
+    private function partnerContext(): array {
+        $u=wp_get_current_user();
+        if(!$u->exists() || !in_array('serben_lojista',(array)$u->roles,true) || !\SerbenConnect\Admin\AccessManagement::accountAllowed((int)$u->ID))
+            return ['ok'=>false,'post_id'=>0,'message'=>'<div class="serben-message">Faça login como parceiro autorizado.</div>'];
+        $id=(int)get_user_meta($u->ID,'serben_partner_post_id',true);
+        $post=$id?get_post($id):null;
+        $cnpj=preg_replace('/\D+/', '', (string)get_user_meta($u->ID,'serben_partner_cnpj',true));
+        $match=false;
+        if($post && $post->post_type==='serben_parceiro' && strlen($cnpj)===14){
+            foreach(['cnpj_do_parceiro','_serben_cnpj'] as $key){
+                $registered=preg_replace('/\D+/', '', (string)get_post_meta($id,$key,true));
+                if($registered!=='' && $registered===$cnpj){$match=true;break;}
+            }
+        }
+        if(!$match) return ['ok'=>false,'post_id'=>0,'message'=>'<div class="serben-message serben-error">Vínculo do parceiro pendente ou divergente. Solicite conferência administrativa.</div>'];
+        return ['ok'=>true,'post_id'=>$id,'message'=>''];
+    }
+    private function isEntity(): bool {
+        $u=wp_get_current_user();
+        return $u->exists() && (bool)array_intersect(['serben_entidade','serben_entidade_diretoria','serben_entidade_secretaria','serben_entidade_atendente'],(array)$u->roles)
+            && \SerbenConnect\Admin\AccessManagement::accountAllowed((int)$u->ID)
+            && (int)get_user_meta((int)$u->ID,'serben_entity_id',true)>0;
+    }
     private function entityLoginMessage(): string{return '<div class="serben-message">Faça login como Entidade Emissora para visualizar.</div>';}
     private function partnerPlan(): string{return (string)(get_user_meta(get_current_user_id(),'serben_partner_plan_name',true)?:'Bume Start');}
     private function couponLimit(string $p): int {if(stripos($p,'pro')!==false||stripos($p,'crescimento')!==false)return -1;if(stripos($p,'impulso')!==false)return 2;return 0;}

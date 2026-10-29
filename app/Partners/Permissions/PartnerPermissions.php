@@ -24,7 +24,21 @@ final class PartnerPermissions
         $postType=sanitize_key((string)Settings::get('partners_post_type','serben_parceiro'));
         if(!$post||$post->post_type!==$postType){return $caps;}
         $linked=(int)get_user_meta($userId,'serben_partner_post_id',true);
-        return $linked===$postId?['read']:['do_not_allow'];
+        if ($linked !== $postId || !$this->matchesCnpj($userId, $postId)) { return ['do_not_allow']; }
+        if ($cap === 'read_post') { return ['read']; }
+        if ($cap === 'edit_post') { return ['edit_serben_partner']; }
+        return ['do_not_allow'];
+    }
+
+    private function matchesCnpj(int $userId, int $postId): bool
+    {
+        $approvedCnpj = preg_replace('/\D+/', '', (string)get_user_meta($userId, 'serben_partner_cnpj', true));
+        if (strlen($approvedCnpj) !== 14) { return false; }
+        foreach (['cnpj_do_parceiro','_serben_cnpj'] as $field) {
+            $onPost = preg_replace('/\D+/', '', (string)get_post_meta($postId, $field, true));
+            if ($onPost !== '' && $onPost === $approvedCnpj) { return true; }
+        }
+        return false;
     }
 
     public function restrictAdminList($query): void
@@ -35,7 +49,7 @@ final class PartnerPermissions
         $postType=sanitize_key((string)Settings::get('partners_post_type','serben_parceiro'));
         if(($query->get('post_type')?:'')!==$postType){return;}
         $linked=(int)get_user_meta($user->ID,'serben_partner_post_id',true);
-        $query->set('post__in',$linked?[$linked]:[0]);
+        $query->set('post__in', $linked && $this->matchesCnpj((int)$user->ID,$linked) ? [$linked] : [0]);
     }
 
     public function guardPostAccess(): void
@@ -46,6 +60,6 @@ final class PartnerPermissions
         $postId=absint($_GET['post']);
         $post=get_post($postId);
         $postType=sanitize_key((string)Settings::get('partners_post_type','serben_parceiro'));
-        if($post&&$post->post_type===$postType&&(int)get_user_meta($user->ID,'serben_partner_post_id',true)!==$postId){wp_die('Você não pode acessar este parceiro.');}
+        if($post&&$post->post_type===$postType&&((int)get_user_meta($user->ID,'serben_partner_post_id',true)!==$postId || !$this->matchesCnpj((int)$user->ID,$postId))){wp_die('Você não pode acessar este parceiro.');}
     }
 }

@@ -4,25 +4,76 @@ use SerbenConnect\Services\FidelidadeService; use SerbenConnect\Support\Settings
 if(!defined('ABSPATH')){exit;}
 final class TransactionSync
 {
-    private $client; private $fidelidade; public function __construct(?Client $client=null,?FidelidadeService $f=null){$this->client=$client?:new Client();$this->fidelidade=$f?:new FidelidadeService();}
+    private $client; public function __construct(?Client $client=null,?FidelidadeService $f=null){$this->client=$client?:new Client();}
     public function sync(): array
     {
-        $pub=(string)Settings::get('awin_publisher_id'); $days=(int)Settings::get('awin_transaction_days',7); $end=gmdate('Y-m-d\TH:i:s'); $start=gmdate('Y-m-d\TH:i:s',time()-$days*DAY_IN_SECONDS);
-        $res=$this->client->get('publishers/'.$pub.'/transactions/',['startDate'=>$start,'endDate'=>$end,'timezone'=>'UTC','dateType'=>'transaction']); if(empty($res['ok'])||!is_array($res['body'])) return ['ok'=>false,'response'=>$res];
-        $items=$res['body']['transactions']??$res['body']['pageItems']??$res['body']; if(!is_array($items))$items=[]; $seen=0;$credited=0;$manual=0;
-        foreach($items as $tx){ if(!is_array($tx))continue; $txid=(string)($tx['transactionId']??$tx['id']??$tx['transactionID']??''); if($txid==='')continue; $seen++; $clickRef=(string)($tx['clickRef']??$tx['clickref']??''); $status=strtolower((string)($tx['status']??$tx['transactionStatus']??''));
+        $pub = (string) Settings::get('awin_publisher_id');
+        $days = max(30, min(90, (int) Settings::get('awin_transaction_days', 30)));
+        // Recheck pending commissions after initial purchase; capped to limit API load.
+        $end = gmdate('Y-m-d\TH:i:s');
+        $start = gmdate('Y-m-d\TH:i:s', time() - $days * DAY_IN_SECONDS);
+        if ($pub === '' || $start === '' || $end === '') {
+            return ['ok'=>false, 'error'=>'Parâmetros de consulta AWIN incompletos'];
+        }
+        $res=$this->client->get('publishers/'.$pub.'/transactions/',['startDate'=>$start,'endDate'=>$end,'timezone'=>'UTC','dateType'=>'transaction']); if(empty($res['ok'])||!is_array($res['body'])) { $failure=['ok'=>false,'error'=>'Falha na consulta de transações AWIN','http_code'=>(int)($res['code']??0)]; update_option('serben_awin_last_transaction_sync',['at'=>current_time('mysql'),'source'=>wp_doing_cron()?'cron':'manual','result'=>$failure],false); return $failure; }
+        $items=$res['body']['transactions']??$res['body']['pageItems']??$res['body']; if(!is_array($items))$items=[]; $seen=0;$credited=0;$manual=0;$errors=0;
+        foreach($items as $tx){ if(!is_array($tx))continue; $txid=(string)($tx['transactionId']??$tx['id']??$tx['transactionID']??''); if($txid==='')continue; $seen++; $existing=$this->existing($txid);
+            $clickRef=$this->extractClickRef($tx);
+            // Do not erase an already linked transaction when AWIN omits clickRefs.
+            if($clickRef==='' && $existing) $clickRef=(string)($existing['click_ref']??'');
+            $status=strtolower(trim((string)($tx['commissionStatus']??$tx['status']??$tx['transactionStatus']??'')));
+            if($status==='' && $existing) $status=(string)($existing['status']??'');
             $sale=$this->amount($tx['saleAmount']??$tx['sale_amount']??$tx['amount']??null); $currency=$this->currency($tx['saleAmount']??null,$tx);
-            $mapping=$this->click($clickRef); $userId=(int)($mapping['user_id']??0); $partnerId=(int)($mapping['partner_id']??0); $aid=(int)($tx['advertiserId']??$mapping['advertiser_id']??0);
+            $mapping=$this->click($clickRef);
+            $userId=(int)($mapping['user_id']??0); $partnerId=(int)($mapping['partner_id']??0);
+            // Keep previously verified association when AWIN does not return a reference.
+            if($userId<=0 && $existing && (string)($existing['click_ref']??'')===$clickRef) $userId=(int)($existing['user_id']??0);
+            if($partnerId<=0 && $existing && (string)($existing['click_ref']??'')===$clickRef) $partnerId=(int)($existing['partner_id']??0); $aid=(int)($tx['advertiserId']??$mapping['advertiser_id']??0);
+            // Para ClickRef=CPF, o mesmo associado compra em diferentes anunciantes.
+            // Identificar o parceiro pelo advertiserId, nunca pelo primeiro clique do CPF.
+            if(preg_match('/^[0-9]{11}$/D',$clickRef) && $aid) $partnerId=$this->partner($aid);
             if(!$partnerId&&$aid)$partnerId=$this->partner($aid); $pct=$partnerId?(float)get_post_meta($partnerId,'awin_cashback_percent',true):0; $enabled=$partnerId?get_post_meta($partnerId,'awin_cashback_enabled',true)==='1':false; $cashbackCents=(int)round($sale*100*$pct/100);
             $serbenStatus='waiting'; $serbenResponse='';
-            $existing=$this->existing($txid); if($existing&&($existing['serben_status']??'')==='credited'){ $this->upsert($txid,$aid,$partnerId,$userId,$clickRef,$status,$currency,$sale,$pct,$cashbackCents,'credited',(string)$existing['serben_response'],$tx); continue; }
+            if($existing&&($existing['serben_status']??'')==='credited'){ $this->upsert($txid,$aid,$partnerId,$userId,$clickRef,$status,$currency,$sale,$pct,$cashbackCents,'credited',(string)$existing['serben_response'],$tx); continue; }
+            // Credit ownership belongs exclusively to the SerBen app.
+            // Never invoke FidelidadeService or any financial write endpoint here.
             if($status==='approved'&&$enabled&&$pct>0&&$cashbackCents>0&&$userId>0){
-                if(strtoupper($currency)!==strtoupper((string)Settings::get('awin_credit_currency','BRL'))){$serbenStatus='manual_currency';$manual++;}
-                else { $cpf=$this->document($userId); if($cpf!==''){ $credit=$this->fidelidade->registrarCashbackExterno($cpf,(int)round($sale*100),$cashbackCents); $serbenResponse=wp_json_encode($credit); if(!empty($credit['ok'])){$serbenStatus='credited';$credited++;}else{$serbenStatus='error';} } else {$serbenStatus='missing_document';} }
+                $serbenStatus='external_app';
             } elseif($status==='declined'||$status==='deleted'){$serbenStatus='declined';}
+            elseif($status==='approved'){
+                if($clickRef==='' || !$mapping){$serbenStatus='missing_click';}
+                elseif($userId<=0){$serbenStatus='missing_user';}
+                elseif(!$enabled){$serbenStatus='cashback_disabled';}
+                elseif($pct<=0){$serbenStatus='missing_percent';}
+                elseif($cashbackCents<=0){$serbenStatus='zero_cashback';}
+            } elseif($status==='pending'){$serbenStatus='pending';}
             $this->upsert($txid,$aid,$partnerId,$userId,$clickRef,$status,$currency,$sale,$pct,$cashbackCents,$serbenStatus,$serbenResponse,$tx);
         }
-        return ['ok'=>true,'transactions'=>$seen,'credited'=>$credited,'manual'=>$manual];
+        $result=['ok'=>true,'transactions'=>$seen,'credited'=>0,'manual'=>$manual,'errors'=>$errors,'credit_mode'=>'serben_app_only'];
+        update_option('serben_awin_last_transaction_sync', ['at'=>current_time('mysql'), 'source'=>wp_doing_cron()?'cron':'manual', 'result'=>$result], false);
+        return $result;
+    }
+    /** AWIN returns clickRefs as a keyed object or list; accept legacy SerBen references and new 11-digit CPF references. */
+    private function extractClickRef(array $tx): string
+    {
+        $candidates=[];
+        foreach(['clickRefs','clickRef','clickref','clickReference'] as $key){
+            if(array_key_exists($key,$tx)) $this->collectClickRefs($tx[$key],$candidates);
+        }
+        foreach($candidates as $candidate){
+            $candidate=trim((string)$candidate);
+            if(preg_match('/^sbn_[A-Za-z0-9_-]{8,100}$/D',$candidate) || preg_match('/^[0-9]{11}$/D',$candidate)) return $candidate;
+        }
+        return '';
+    }
+    private function collectClickRefs($value,array &$result): void
+    {
+        if(is_string($value)||is_numeric($value)){$result[]=(string)$value;return;}
+        if(!is_array($value))return;
+        foreach($value as $key=>$item){
+            if(is_array($item))$this->collectClickRefs($item,$result);
+            elseif(is_string($item)||is_numeric($item))$result[]=(string)$item;
+        }
     }
     private function amount($v): float { if(is_array($v))return (float)($v['amount']??$v['value']??0); return (float)$v; }
     private function currency($amount,array $tx): string { return is_array($amount)?(string)($amount['currency']??''):(string)($tx['currency']??$tx['currencyCode']??''); }
