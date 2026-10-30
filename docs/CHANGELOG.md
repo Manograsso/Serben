@@ -1,3 +1,18 @@
+## 2.1.6
+- Vinculação administrativa manual de entidades: confirmação de CNPJ, razão social e ID institucional sem chamada à API legada.
+- Registro de responsável, data e origem da validação; bloqueio de IDs associados a outros CNPJs.
+- Contas aprovadas sem vínculo permanecem sem acesso aos dados institucionais.
+
+## 2.1.5
+- Vinculação administrativa posterior de entidades aprovadas, com consulta Corporacao/getByCnpj e comparação estrita do CNPJ.
+- ID institucional informado e confirmado manualmente; verificação de conflitos e registro de auditoria.
+- Painéis de entidade mostram estado de vínculo pendente sem revelar dados restritos.
+
+## 2.1.5
+- Recuperação segura de aprovação parcial de entidades/parceiros.
+- Persistência do status antes do envio de e-mail.
+- Contas gerenciadas permanecem bloqueadas até aprovação.
+
 ## 2.1.3
 
 - Solicitações: retorno visível com redirecionamento 303, URL explícita e parâmetro ant-cache.
