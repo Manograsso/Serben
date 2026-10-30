@@ -1,3 +1,8 @@
+## 2.1.6
+- Vinculação administrativa manual de entidades: confirmação de CNPJ, razão social e ID institucional sem chamada à API legada.
+- Registro de responsável, data e origem da validação; bloqueio de IDs associados a outros CNPJs.
+- Contas aprovadas sem vínculo permanecem sem acesso aos dados institucionais.
+
 ## 2.1.0 — Acesso híbrido com aprovação
 - Solicitações públicas e convites administrativos para parceiros e entidades.
 - Aprovação manual, criação de contas com senha definida via link de recuperação.

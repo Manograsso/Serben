@@ -2,12 +2,12 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.1.5
+Stable tag: 2.1.6
 License: GPLv2 or later
 
 Portal operacional do Clube SerBen em WordPress: integrações SerBen, associados, parceiros, entidades, credenciamento, dashboards, Awin e Elementor.
 
-== Novidades 2.1.5 ==
+== Novidades 2.1.6 ==
 
 * Modelo híbrido de acesso: convites administrativos e solicitações públicas, com aprovação.
 * `[serben_access_request]`: solicitação pública; `[serben_partner_login]`: login por e-mail e senha WordPress.
@@ -91,7 +91,7 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 
 == Changelog ==
 
-= 2.1.5 =
+= 2.1.6 =
 * Mensagens de retorno de solicitações de acesso e tratamento de duplicidade/limitação.
 * Evita consulta de portadores com CNPJ; endpoint exige CPF.
 * Mensagens administrativas mais claras para ausência/duplicidade de parceiro por CNPJ.
@@ -383,3 +383,7 @@ Versão 1.8.1: nomenclatura NET BUME / CASH BUME para CCI. Bumes/Pontos permanec
 
 * Corrigidas chamadas ao método inexistente Profile::cpfRaw() em quatro componentes; passam a utilizar Profile::cpf().
 * Mantidas as integrações AWIN e regras de crédito exclusivamente pelo app.
+
+= 2.1.6 =
+* Vinculação manual de entidades sem dependência de chave da API legada.
+* Confirmação administrativa de CNPJ, razão social e ID institucional, com auditoria.
