@@ -1,0 +1,9 @@
+Club Serben 2.3.0
+
+- Cards mantêm o layout minimalista aprovado.
+- Fundo do logo prioriza cor manual da marca, depois mapa de marcas e detecção automática pelo logo local.
+- Fallback deixou de ser roxo e passou a neutro quando não há informação confiável.
+- Logos em fundos escuros recebem tratamento de contraste quando necessário.
+- Imagens de capa usam enquadramento inteligente: cover para fotos proporcionais e contain para banners/verticais, sempre centralizados.
+- Campo opcional Cor principal da marca adicionado ao cadastro do parceiro.
+- Página individual sem capa também usa a cor da marca.

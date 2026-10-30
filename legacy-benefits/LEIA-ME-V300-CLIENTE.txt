@@ -1,0 +1,8 @@
+Club Serben Benefícios v3.0.0 — apontamentos do cliente
+
+- Marketplace aceita ?busca= e ?tipo=online|fisico.
+- Busca da Home/Header abre Ofertas já filtrada.
+- Filtros online e presencial são estritos.
+- Percentual Awin é exibido quando cadastrado.
+- Página individual online não exibe Site Oficial fora do botão rastreado.
+- Passos de cashback reforçam rastreamento e proibição de aba anônima.

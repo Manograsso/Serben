@@ -1,0 +1,18 @@
+SERBEN CLUBE DE BENEFÍCIOS v1.7.4
+
+Template individual redesenhado conforme referência aprovada:
+- capa simples: BG-Capa-Parceiros + logo + nome, centralizados;
+- sem sombras, caixas ou sobreposições na capa;
+- capa preenche integralmente a coluna;
+- coluna de informações acompanha a altura visual da capa;
+- hierarquia visual alinhada à Home Club Serben;
+- roxo #7137A3, roxo escuro #55257D, lilás #BE63FF e laranja #F89F28;
+- CTA online continua usando [serben_partner_link] do Connect/Awin;
+- online elegível mostra CashBume;
+- presencial mostra desconto/vantagem e nunca CashBume;
+- favoritos e compartilhamento preservados;
+- /credenciados/ preservado.
+
+IMPORTANTE APÓS ATUALIZAR:
+Parceiros > Manutenção > Regenerar capas de todos os parceiros.
+Isso recria as capas antigas no novo padrão simples.

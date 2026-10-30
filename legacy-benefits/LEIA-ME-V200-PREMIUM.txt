@@ -1,0 +1,9 @@
+Club Serben 2.0.0 — Front-end premium
+
+- Página de ofertas reconstruída com grade responsiva e cards uniformes sem imagem de capa.
+- Cores alternadas dinamicamente após qualquer filtro.
+- Ícones 100% SVG inline, sem Font Awesome, Elementor ou CDN.
+- Página individual reconstruída: capa real quando existir; quando não existir, apenas o logo.
+- Fluxos diferentes para ofertas online e presenciais.
+- Conteúdo deduplicado para evitar informações repetitivas.
+- Backend, importadores, shortcodes, favoritos, AJAX, REST e Cover Studio preservados.

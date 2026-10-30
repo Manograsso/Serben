@@ -1,0 +1,1 @@
+Versão 2.5.0: cor manual padrão #FFFFFF, logos sem filtros, tipografia Montserrat baseada em 16px, cards e página individual revisados.

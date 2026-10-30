@@ -1,0 +1,10 @@
+Club Serben v2.8.0
+
+- Página individual redesenhada com foco na vitrine do parceiro.
+- Removido bloco institucional de Benefícios do Club Serben da página individual.
+- Menu interno sticky com destaque da seção ativa.
+- Categoria com ícone Font Awesome e link para o marketplace filtrado.
+- Nova galeria de fotos e lista de serviços/especialidades por parceiro.
+- Campo de apresentação da marca no admin.
+- Grid de ofertas em 4/3/2/1 colunas responsivas.
+- Roxo principal padronizado em #862F93 e Montserrat em toda a página individual.

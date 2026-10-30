@@ -1,0 +1,10 @@
+Club Serben 2.1.0
+
+- Navegação pública reduzida a categorias principais.
+- Subcategorias aparecem somente após selecionar uma categoria principal.
+- Termos antigos/subcategorias não aparecem mais no carrossel principal.
+- Marketplace redesenhado com cards claros e premium, sem imagem de capa.
+- Filtros usam uma camada editorial que mapeia a taxonomia legada para categorias amplas.
+- Links do carrossel de categorias da home abrem a página de ofertas já filtrada.
+- Favoritos usam SVG inline, sem dependência de Font Awesome.
+- Página individual refinada; continua usando imagem de capa quando disponível e logo quando não houver capa.

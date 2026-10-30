@@ -1,0 +1,7 @@
+Club Serben 2.7.0
+
+- Ícones Font Awesome Free agora são renderizados como SVG inline a partir dos arquivos locais do plugin.
+- Não dependem de CDN, webfont, Elementor ou CSS mask para aparecer.
+- Página individual usa o redesign editorial da 2.6 e inclui uma nova seção institucional de benefícios do Club Serben.
+- Benefícios padrão: seguro por morte acidental/invalidez por acidente (R$ 15.000,00), telemedicina, medicamentos genéricos, assistência residencial e clube de vantagens.
+- Os textos e a exibição da seção podem ser editados em Parceiros > Benefícios do Clube.

@@ -1,0 +1,7 @@
+SERBEN CLUBE DE BENEFÍCIOS — v1.9.1
+
+Correções de importação para planilhas físicas de viagens:
+- Reconhece "Categoria - Viagem" como a coluna Categoria.
+- Reconhece "Sub Categoria -Hospedagem" como Sub Categoria.
+- Reconhece também a grafia "Discrição da Promoção" usada na planilha fornecida.
+- Mantém compatibilidade com os cabeçalhos já aceitos nas versões anteriores.

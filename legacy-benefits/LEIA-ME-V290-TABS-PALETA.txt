@@ -1,0 +1,5 @@
+Club Serben 2.9.0
+- Página individual com navegação sticky em abas acessíveis.
+- Marketplace com cabeçalho mais objetivo (um único título principal).
+- Paleta prioriza #862F93 e #F6A427, depois neutros.
+- Hovers, foco e transições refinados.

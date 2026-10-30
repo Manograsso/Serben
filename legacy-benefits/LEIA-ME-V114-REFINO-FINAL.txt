@@ -1,0 +1,10 @@
+Versão 1.14.0
+
+- Cards da vitrine reduzidos em mais de 40% de área no desktop (5 colunas e altura compacta).
+- Categorias continuam usando o mesmo card sem imagem de capa.
+- Cores dos cards são recalculadas pela ordem visível após qualquer filtro: roxo, roxo escuro, magenta e laranja da marca.
+- Removidas cores não pertencentes à identidade visual dos badges ativos.
+- Página individual refeita: título menor e menos pesado, tipografia Montserrat e hierarquia mais limpa.
+- Quando não há capa, o hero mostra somente o logo do parceiro, sem textos ou tags redundantes.
+- Ícones críticos da página individual agora são SVG embutido e não dependem de fonte externa.
+- Font Awesome da vitrine prioriza a cópia local do Elementor para evitar ícones quebrados.

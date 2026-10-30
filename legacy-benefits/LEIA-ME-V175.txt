@@ -1,0 +1,25 @@
+SERBEN CLUBE DE BENEFÍCIOS v1.7.5
+
+CORREÇÕES DESTA VERSÃO
+- Página individual refeita para preservar o modelo aprovado:
+  capa simples (BG + logo + nome), sem sombras/sobreposições;
+  coluna de informações com a mesma altura visual da capa;
+  benefício, chips, CTA e avisos organizados como no mockup.
+- Online elegível: cashback convertido em CashBume, com fluxo Acesse > Compre > Aguarde > Receba.
+- Presencial: desconto/vantagem, sem CashBume/cashback.
+- Link Awin continua passando pelo shortcode [serben_partner_link] do Clube Serben Connect.
+- /credenciados/ agora usa uma cópia interna completa da Página de Ofertas V9 enviada,
+  com busca, categorias, subcategorias, filtros e listing.
+- Listing de /credenciados/ recebeu somente o adicional de Favoritar.
+- Shortcode da página de credenciados: [serben_credenciados_page]
+- Favoritos continuam disponíveis em [serben_favoritos].
+- Capa automática v1.7.5 força regeneração do layout antigo quando necessário.
+
+APÓS ATUALIZAR
+Configurações > Links permanentes > Salvar alterações.
+Depois teste:
+1. /credenciados/
+2. parceiro online Awin
+3. parceiro presencial
+4. favoritar no listing
+5. página com [serben_favoritos]

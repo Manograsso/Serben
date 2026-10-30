@@ -1,0 +1,13 @@
+CLUB SERBEN — v1.10.0
+
+Ajustes principais
+- Página de ofertas redesenhada com referência visual no Clube de Vantagens Bradesco Seguros.
+- Cards COM capa: fotografia no topo, selo de benefício, nome do parceiro, resumo e faixa de destaque opcional.
+- Cards SEM capa: peça integral de marca no estilo gift card, com benefício à esquerda, botão branco e logo em círculo à direita.
+- A mesma regra foi aplicada à página /credenciados/ e aos cards públicos dos shortcodes.
+- Página individual reorganizada: hero mais limpo, oferta e validade em evidência, CTA principal e seção de ofertas relacionadas.
+- Na página individual, quando não existe capa editorial, o visual também usa linguagem de gift card em vez de placeholder fotográfico.
+
+Regra de mídia
+- Se existir capa editorial aprovada/local: usa o layout fotográfico.
+- Se não existir capa editorial: usa o layout de marca em CSS.

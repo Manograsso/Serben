@@ -1,0 +1,7 @@
+Versão 2.2.0
+
+- Cards minimalistas: capa quando existir; logo sobre fundo de marca quando não houver capa.
+- Card exibe somente visual, marca, benefício e CTA.
+- Categorias principais com Todos fixo e categorias em scroll horizontal.
+- Subcategorias só aparecem após selecionar uma categoria principal.
+- Layout responsivo revisado.

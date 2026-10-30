@@ -1,0 +1,34 @@
+CLUB SERBEN — CLUBE DE BENEFÍCIOS v1.8.0
+
+NOVIDADE: MÍDIA DE PARCEIROS
+
+1. Edite um parceiro em Parceiros/Credenciados.
+2. Na caixa “Mídia do parceiro” você pode:
+   - buscar imagens no Google (descoberta manual);
+   - buscar automaticamente a imagem editorial declarada pelo site oficial (og:image/twitter:image);
+   - importar uma URL direta de imagem;
+   - registrar a página de origem e o crédito;
+   - remover a capa editorial e voltar ao fallback Club Serben.
+
+IMPORTANTE
+- Google é usado somente como descoberta. O plugin não faz scraping do Google.
+- A imagem selecionada é copiada para a Biblioteca de Mídia do WordPress.
+- Registre a URL da fonte original e use apenas material autorizado/oficial.
+- Crédito padrão: “Imagem de divulgação da marca”. Altere quando a fonte exigir crédito específico.
+
+LISTAGENS
+- A capa editorial ocupa a área de imagem com object-fit: cover.
+- O logo oficial aparece sobre a capa em um retângulo branco arredondado.
+- Se não houver capa editorial, permanece o fallback visual Club Serben.
+
+PÁGINA INDIVIDUAL
+- Passa a usar a mesma capa editorial aprovada.
+- Logo oficial sobreposto no canto inferior esquerdo.
+- Crédito da imagem aparece discretamente no canto inferior direito quando cadastrado.
+
+SEGURANÇA
+- Ações administrativas usam nonce e capability edit_post/manage_options.
+- Consulta ao site oficial usa wp_safe_remote_get.
+- Upload remoto passa pelo media_sideload_image e valida MIME.
+
+VERSÃO: 1.8.0

@@ -1,0 +1,7 @@
+Club Serben v1.9.0
+- Corrige capas e logos dos cards.
+- Favorito vira botão compacto sobre a imagem.
+- Página individual volta a duas colunas em desktop e reduz a capa.
+- Fallback público passa a usar imagem estável, sem SVG remoto.
+- Inclui “Revisar mídias quebradas” em Parceiros > Manutenção.
+Após atualizar: limpe cache, rode a revisão e depois “Tentar novamente sem imagem”.

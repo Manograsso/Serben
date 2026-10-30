@@ -1,0 +1,19 @@
+CLUB SERBEN — V1.8.2 — BUSCA INTELIGENTE DE CAPAS
+
+O QUE MUDOU
+- Busca em camadas no site oficial: Open Graph/Twitter, JSON-LD/Product, imagens reais, páginas internas e sitemap.
+- Ranking de candidatos para priorizar produto/campanha/vitrine e evitar logo, favicon, ícone e placeholder.
+- Validação remota antes de importar a melhor imagem.
+- A capa aprovada continua sendo usada no listing e na página individual.
+- Processamento em lotes menores para reduzir timeouts.
+- Botões para tentar novamente somente parceiros sem imagem ou somente falhas.
+- Registra o método/confiança ou o motivo da falha em metadado interno.
+
+COMO USAR
+1. Substitua a versão anterior do plugin por esta v1.8.2.
+2. Vá em Parceiros > Manutenção.
+3. Clique em Buscar capas com o motor inteligente.
+4. Para o resultado anterior, use Tentar novamente sem imagem e depois Tentar novamente as falhas.
+
+OBSERVAÇÃO
+A busca usa somente endereços oficiais cadastrados no parceiro e não raspa Google Imagens automaticamente.

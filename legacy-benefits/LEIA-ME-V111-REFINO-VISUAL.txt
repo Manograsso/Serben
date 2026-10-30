@@ -1,0 +1,14 @@
+Club Serben v1.11.0 — refino visual e consistência de capas
+
+Principais mudanças:
+- Página individual usa a mesma resolução de capa da vitrine.
+- Corrigido CSS que podia substituir uma capa real pelo fundo roxo.
+- Capas também podem ser recuperadas de banner legado ou imagem destacada horizontal válida.
+- Removidas repetições de título/benefício e blocos redundantes na página individual.
+- Font Awesome 6.7.2 carregado pelo plugin; Montserrat mantida como tipografia principal.
+- Ícones, espaçamentos, hovers, contraste e cores refinados na identidade visual Club Serben.
+- Cards da listagem são separados em linhas homogêneas: com capa e sem capa.
+- Ao pesquisar ou filtrar por categoria/subcategoria, todos os resultados usam o mesmo card sem foto.
+- Logos nos cards sem capa ficam recortados dentro do círculo, sem vazamento.
+- Cards relacionados da página individual usam o mesmo estilo uniforme sem foto.
+- Versão: 1.11.0.

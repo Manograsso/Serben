@@ -1,0 +1,10 @@
+SERBEN CLUBE DE BENEFÍCIOS v1.7.3
+
+Ajuste visual das capas automáticas:
+- usa como fundo: https://bumemania.com.br/clubserben/wp-content/uploads/2026/09/BG-Capa-Parceiros.png
+- o fundo preenche 100% do banner (cover / xMidYMid slice)
+- conteúdo centralizado em uma área segura para evitar cortes
+- logo, tipo, parceiro, categoria e benefício ficam concentrados no centro
+- mantém botão Regenerar capa e regeneração em lote
+
+Após ativar: Parceiros > Manutenção > Regenerar capas de todos os parceiros.

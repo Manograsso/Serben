@@ -1,0 +1,8 @@
+Versão 1.13.0
+
+- Categorias/subcategorias exibem todos os resultados no mesmo card sem imagem de capa.
+- Busca geral pode continuar exibindo cards com imagem quando houver.
+- Página individual usa capa real quando existir.
+- Sem capa real, a página individual exibe uma área de identidade do parceiro, sem repetir nome/benefício.
+- Removidas instruções repetidas entre CTA, "Como funciona", serviço e informações importantes.
+- Logos usam object-fit: contain para evitar zoom/cortes.

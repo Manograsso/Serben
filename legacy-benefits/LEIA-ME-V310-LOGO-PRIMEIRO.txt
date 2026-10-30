@@ -1,0 +1,16 @@
+Club Serben v3.1.0 — Logo como mídia principal
+
+REGRAS VISUAIS
+- Parceiros online: logo é sempre a mídia principal nos cards e no topo da página individual.
+- A imagem de capa de parceiros online vira mídia secundária e entra automaticamente na galeria.
+- Parceiros presenciais: a capa pode continuar como mídia principal quando existir; sem capa, usa o logo.
+- A cor de fundo continua vindo do campo Cor principal da marca, padrão #FFFFFF.
+
+GESTÃO DE LOGOS
+- Novo logo local sempre tem prioridade sobre URLs legadas/Awin.
+- Remover logo grava um bloqueio explícito para o logo antigo não reaparecer.
+- Importação ZIP não define mais o logo como imagem destacada.
+- Logos importados pelo plugin são marcados como gerenciados.
+- Ao substituir, o arquivo antigo é apagado somente se for gerenciado pelo plugin e não estiver em uso.
+- Em Parceiros > Manutenção existe Limpar logos antigos não utilizados.
+- Logos escolhidos manualmente da Biblioteca não são apagados automaticamente.

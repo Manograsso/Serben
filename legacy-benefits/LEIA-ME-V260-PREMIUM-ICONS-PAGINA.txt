@@ -1,0 +1,9 @@
+Club Serben 2.6.0
+
+- Ícones Font Awesome Free agora são SVGs locais via CSS mask; não dependem de CDN, webfont ou Elementor.
+- Setas do carrossel de categorias usam rolagem nativa e ícones próprios esquerda/direita.
+- Página individual reconstruída com classes novas, sem herdar os estilos antigos.
+- Imagem de capa é exibida inteira com backdrop da própria imagem para preencher a área.
+- Sem capa: apenas logo sobre a cor cadastrada da marca.
+- Montserrat e escala tipográfica baseada em 16px.
+- Seções com menos quadros e mais divisores/estrutura editorial.

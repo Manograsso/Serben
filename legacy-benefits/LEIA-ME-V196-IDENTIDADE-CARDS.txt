@@ -1,0 +1,13 @@
+CLUB SERBEN — v1.9.6
+
+Atualização visual aplicada ao plugin anexo.
+
+- Cards de credenciados com identidade Club Serben em roxo/laranja.
+- Capas reais continuam sendo usadas quando há mídia editorial aprovada.
+- Capa sem foto ganha fallback visual nativo, sem depender de URL externa.
+- Faixa/ribbon laranja aplicada como assinatura visual.
+- Logo SEMPRE fica dentro de uma caixa branca fixa, com overflow oculto e object-fit contain.
+- O CSS neutraliza estilos do tema para impedir logo estourando, cortado ou maior que a caixa.
+- Mesmo tratamento aplicado à página individual do parceiro.
+
+Instalação: desative/remova a versão anterior do plugin e instale este ZIP. Depois limpe cache/CDN.

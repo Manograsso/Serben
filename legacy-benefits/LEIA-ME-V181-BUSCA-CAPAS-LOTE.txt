@@ -1,0 +1,11 @@
+CLUB SERBEN — V1.8.1 — BUSCA DE CAPAS EM LOTE
+
+1. Acesse Parceiros > Manutenção.
+2. Em “Capas oficiais em lote”, clique em “Buscar capas oficiais para todos”.
+3. O plugin processa os parceiros em pequenos lotes para reduzir risco de timeout.
+4. Para cada parceiro com site oficial cadastrado, procura a imagem editorial publicada pelo próprio site (og:image/twitter:image), importa para a Biblioteca de Mídia e registra a origem.
+5. Listing e página individual usam automaticamente a mesma capa.
+6. Parceiros sem site ou sem imagem editorial detectável mantêm o fallback e aparecem no resumo da busca.
+7. Por padrão, capas já aprovadas não são substituídas. Marque “Refazer também parceiros que já possuem capa editorial” somente quando desejar atualizar tudo.
+
+Observação: o recurso em lote usa os sites oficiais cadastrados. A pesquisa Google continua disponível individualmente apenas como ferramenta de descoberta, pois não é usada como fonte automática de download.

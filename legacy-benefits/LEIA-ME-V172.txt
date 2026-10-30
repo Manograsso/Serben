@@ -1,0 +1,23 @@
+SERBEN CLUBE DE BENEFÍCIOS 1.7.2
+
+Plugin completo e instalável.
+
+Principais mudanças:
+- novo single de oferta alinhado à identidade Club Serben;
+- online elegível mostra CashBume e usa [serben_partner_link] do Clube Serben Connect para preservar tracking Awin;
+- presencial mostra desconto/vantagem e nunca CashBume;
+- passo a passo específico para online e presencial;
+- /credenciados/ possui template de ofertas;
+- favoritos via [serben_favoritos] e botão via [serben_favorito_botao];
+- botão Favoritar também no single e cards;
+- capas automáticas por categoria usando exclusivamente roxos/lilás/laranja da marca;
+- fallback de categoria e logo;
+- botão Regenerar capa e regeneração em lote.
+
+SHORTCODES
+[serben_favoritos]
+[serben_favorito_botao]
+[serben_favorito_botao id="123"]
+[serben_credenciados]
+
+Recomendado: criar uma página “Favoritos” e inserir [serben_favoritos].

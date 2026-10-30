@@ -1,0 +1,17 @@
+CLUB SERBEN — v1.9.4
+
+- Capa institucional Club Serben quando não houver mídia real aprovada.
+- Logo sempre separado da capa e protegido em box branco.
+- /credenciados com cards mais consistentes, tipo Online/Presencial e descrição curta do benefício.
+- Novo campo “Descrição do benefício / desconto”.
+- Regra “não cumulativo” ativa por padrão.
+- Página individual mais completa: benefício, como usar, unidades, contatos, validade e cupom.
+- Presencial orientado para validação por CPF/QR Code da carteirinha digital.
+- Online mantém link rastreado do Connect quando disponível.
+- Sem gradiente no bloco principal.
+
+AGÊNCIA PARCEIRA
+A agência segue a especificação comercial do Sistema de Parceiros Bume. Ela não é responsável pelo layout do site.
+
+INSTALAÇÃO
+Desative/remova a versão anterior do plugin, instale este ZIP, ative, limpe cache/CDN e execute Parceiros > Manutenção > Revisar mídias quebradas.

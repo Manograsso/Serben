@@ -1,0 +1,21 @@
+SERBEN CLUBE DE BENEFÍCIOS — v1.9.5
+PLANO B DE CAPAS — ROBUSTO
+
+O que mudou:
+- A vitrine NÃO usa mais URLs automáticas, hotlinks, banners legados nem logo ampliado como capa.
+- SOMENTE a capa editorial aprovada na Biblioteca de Mídia é usada como fotografia.
+- Sem capa aprovada, entra um fallback visual Club Serben em CSS (roxo + laranja + logo separado).
+- O fallback não depende de arquivo de imagem externo e, portanto, não quebra.
+- Se uma capa aprovada falhar no navegador, o card cai automaticamente para o fallback.
+- A página individual segue a mesma regra.
+
+Fluxo recomendado:
+1. Instale e ative a v1.9.5.
+2. Limpe cache/CDN.
+3. Parceiros sem capa aprovada aparecem imediatamente com a identidade Club Serben.
+4. Aos poucos, aprove fotos reais no campo Mídia do parceiro.
+
+Resultado esperado:
+- zero ícones de imagem quebrada nas capas;
+- zero logo esticado como banner;
+- visual consistente desde o primeiro carregamento.

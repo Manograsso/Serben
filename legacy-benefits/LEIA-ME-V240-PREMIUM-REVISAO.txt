@@ -1,0 +1,13 @@
+Club Serben v2.4.0 — revisão premium
+
+- Font Awesome explícito no front-end, com fallback para handles do Elementor quando disponíveis.
+- Categorias principais com "Todos" fixo, tamanhos uniformes e trilho horizontal responsivo.
+- Setas do trilho reimplementadas com animação de scroll via jQuery.
+- Subcategorias permanecem ocultas até a seleção da categoria principal.
+- Cards mostram sempre nome da marca, benefício e CTA.
+- Cards com capa: imagem inteira em object-fit: contain + fundo visual preenchido + logo da marca sobreposto.
+- Cards sem capa: logo central sobre cor da própria marca; roxo Club Serben não é fallback de marca.
+- Cor de marca: manual > detecção automática do logo local > mapa conhecido > neutro.
+- Página individual reconstruída, com textos mais curtos e fluxo distinto para online/presencial.
+- Cores de interface: roxo/roxo escuro/laranja da identidade Club Serben + neutros; sem rosa/magenta nos componentes novos.
+- Relacionados usam o mesmo padrão dos cards principais.

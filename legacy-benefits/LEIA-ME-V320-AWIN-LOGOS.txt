@@ -1,0 +1,12 @@
+Club Serben v3.2.0 — Logos Awin
+
+- Integração oficial via Awin Publisher API.
+- Usa GET /publishers/{publisherId}/programmes e o campo logoUrl.
+- Pesquisa por Advertiser ID quando cadastrado ou por nome do parceiro.
+- Importa o logo para a Biblioteca de Mídia e marca como arquivo gerenciado pelo plugin.
+- Não hotlinka o logo da Awin no front-end depois da importação.
+- Substituição de logo gerenciado remove a versão antiga quando ela não estiver em uso.
+- Tela Parceiros > Awin / Logos para Publisher ID, token, teste e sincronização em lote.
+- Botão “Pesquisar logo na Awin” dentro da edição de cada parceiro.
+
+Produção: prefira definir SERBEN_AWIN_PUBLISHER_ID e SERBEN_AWIN_API_TOKEN no wp-config.php.
