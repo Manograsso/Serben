@@ -18,6 +18,7 @@ final class AccessManagement {
         add_action('admin_post_serben_access_revoke', [$this, 'revoke']);
         add_action('admin_post_serben_access_restore', [$this, 'restore']);
         add_action('admin_post_serben_access_resend', [$this, 'resend']);
+        add_action('admin_post_serben_access_bind_entity', [$this, 'bindEntity']);
         add_filter('wp_authenticate_user', [$this, 'verifyManagedLogin'], 20, 2);
         add_shortcode('serben_access_request', [$this, 'form']);
     }
@@ -190,32 +191,62 @@ final class AccessManagement {
         if ($decision !== 'approve') { wp_safe_redirect($this->url('invalid'));exit; }
         $item=$records[$id];
         if (!$this->validRecord($item)) { wp_safe_redirect($this->url('invalid'));exit; }
-        $existing=get_user_by('email',$item['email']);
-        if ($existing) { wp_safe_redirect($this->url('email_exists'));exit; }
         $entityId=$item['type']==='entity' ? absint($this->post('entity_id')) : 0;
-        if ($item['type'] === 'partner' && !$this->partnerPostId($item['cnpj'])) {
+        $partnerId=$item['type']==='partner' ? $this->partnerPostId($item['cnpj']) : 0;
+        if ($item['type'] === 'partner' && !$partnerId) {
             wp_safe_redirect($this->url('partner_unlinked')); exit;
         }
         if ($entityId && ($this->entityIdConflict($entityId,$item['cnpj']) || !$this->verifiedEntityId($entityId,$item['cnpj']))) {
             wp_safe_redirect($this->url('entity_unverified')); exit;
         }
         $login='serben_access_'.str_replace('-','',substr($id,0,18));
-        $userId=wp_insert_user([
-            'user_login'=>$login,'user_email'=>$item['email'],'display_name'=>$item['name'],
-            'user_pass'=>wp_generate_password(40,true,true),
-            'role'=>$item['type']==='partner'?'serben_lojista':'serben_entidade',
-        ]);
-        if (is_wp_error($userId)) { wp_safe_redirect($this->url('create_error'));exit; }
-        update_user_meta($userId,'serben_access_managed',1);
-        update_user_meta($userId,'serben_identity_type',$item['type']);
-        update_user_meta($userId,'serben_documento',$item['cnpj']);
-        update_user_meta($userId,'serben_access_cnpj',$item['cnpj']);
+        $existing=get_user_by('email',$item['email']);
+        $byLogin=get_user_by('login',$login);
+        $userId=0;
+        $recovered=false;
+        if ($existing || $byLogin) {
+            // A previously interrupted approval may have created the user already.
+            // Never attach an unrelated WordPress account solely by matching email.
+            if (!$existing || !$byLogin || (int)$existing->ID !== (int)$byLogin->ID
+                || (string)$existing->user_email !== (string)$item['email']
+                || !in_array($item['type']==='partner'?'serben_lojista':'serben_entidade', (array)$existing->roles, true)
+                || (string)get_user_meta($existing->ID,'serben_access_managed',true) !== '1'
+                || (string)get_user_meta($existing->ID,'serben_access_cnpj',true) !== $item['cnpj']
+                || (string)get_user_meta($existing->ID,'serben_identity_type',true) !== $item['type']) {
+                wp_safe_redirect($this->url('email_exists')); exit;
+            }
+            $userId=(int)$existing->ID;
+            $recovered=true;
+        } else {
+            $userId=wp_insert_user([
+                'user_login'=>$login,'user_email'=>$item['email'],'display_name'=>$item['name'],
+                'user_pass'=>wp_generate_password(40,true,true),
+                'role'=>$item['type']==='partner'?'serben_lojista':'serben_entidade',
+            ]);
+            if (is_wp_error($userId)) { wp_safe_redirect($this->url('create_error'));exit; }
+            $userId=(int)$userId;
+            // Immediately mark as managed and inactive before any external integration.
+            update_user_meta($userId,'serben_access_managed',1);
+            update_user_meta($userId,'serben_access_approved',0);
+            update_user_meta($userId,'serben_access_request_id',$id);
+            update_user_meta($userId,'serben_identity_type',$item['type']);
+            update_user_meta($userId,'serben_documento',$item['cnpj']);
+            update_user_meta($userId,'serben_access_cnpj',$item['cnpj']);
+        }
+        // Recovered accounts must be tied to the same request, or be a verified
+        // legacy partial creation with the exact deterministic login and metadata.
+        $owner=(string)get_user_meta($userId,'serben_access_request_id',true);
+        if ($owner !== '' && $owner !== $id) {
+            wp_safe_redirect($this->url('email_exists')); exit;
+        }
+        update_user_meta($userId,'serben_access_request_id',$id);
         if ($item['type'] === 'partner') {
             update_user_meta($userId,'serben_partner_cnpj',$item['cnpj']);
-            $linked=(new PartnerLinker())->link((int)$userId,$item['cnpj']);
+            try { $linked=(new PartnerLinker())->link($userId,$item['cnpj']); }
+            catch (\Throwable $e) { $linked=['ok'=>false]; error_log('SerBen access partner link failed: '.$e->getMessage()); }
             if (empty($linked['ok'])) {
-                // Do not issue an approved but unusable partner account.
-                wp_delete_user((int)$userId);
+                // Keep an interrupted account inactive for a safe retry.
+                update_user_meta($userId,'serben_access_approved',0);
                 wp_safe_redirect($this->url('partner_unlinked')); exit;
             }
             $records[$id]['link_status']='linked';
@@ -224,13 +255,21 @@ final class AccessManagement {
             if ($entityId) { update_user_meta($userId,'serben_entity_id',$entityId); }
             $records[$id]['link_status']=$entityId?'linked':'pending';
         }
-        update_user_meta($userId,'serben_access_approved',1);
-        $records[$id]['status']='approved'; $records[$id]['user_id']=(int)$userId;
-        $records[$id]['entity_id']=$entityId; $records[$id]['reviewer']=get_current_user_id();
+        // Persist the approval BEFORE sending email. A mail failure must not
+        // leave an approved user with a pending request.
+        $records[$id]['status']='approved';
+        $records[$id]['user_id']=$userId;
+        $records[$id]['entity_id']=$entityId;
+        $records[$id]['reviewer']=get_current_user_id();
         $records[$id]['approved_at']=current_time('mysql',true);
-        $records[$id]['email_sent']=$this->emailPasswordLink((int)$userId);
+        $records[$id]['email_sent']=false;
         $this->save($records);
-        wp_safe_redirect($this->url($records[$id]['email_sent']?'updated':'email_failed'));exit;
+        update_user_meta($userId,'serben_access_approved',1);
+        try { $sent=$this->emailPasswordLink($userId); }
+        catch (\Throwable $e) { $sent=false; error_log('SerBen access mail failed: '.$e->getMessage()); }
+        $records[$id]['email_sent']=(bool)$sent;
+        $this->save($records);
+        wp_safe_redirect($this->url($sent?($recovered?'recovered':'updated'):'email_failed'));exit;
     }
     private function findApproved(string $id): array {
         $records=$this->records();
@@ -239,6 +278,51 @@ final class AccessManagement {
         if (!$userId || !get_userdata($userId)) { return [$records,0,$item]; }
         if ($this->cnpj((string)get_user_meta($userId,'serben_access_cnpj',true)) !== ($item['cnpj']??'')) { return [$records,0,$item]; }
         return [$records,$userId,$item];
+    }
+    /** Administrative binding: API confirms the CNPJ, not the institutional ID. */
+    public function bindEntity(): void {
+        $id=$this->post('request_id');
+        $this->assertAdmin('serben_access_bind_entity_', $id);
+        list($records,$userId,$item)=$this->findApproved($id);
+        if (!$userId || ($item['status']??'')!=='approved' || ($item['type']??'')!=='entity'
+            || (string)get_user_meta($userId,'serben_access_request_id',true)!==$id
+            || (string)get_user_meta($userId,'serben_identity_type',true)!=='entity'
+            || !self::accountAllowed($userId)) {
+            wp_safe_redirect($this->url('not_found')); exit;
+        }
+        $entityId=absint($this->post('entity_id'));
+        if (!$entityId || $this->post('confirm_manual')!=='1') {
+            wp_safe_redirect($this->url('entity_confirmation_required')); exit;
+        }
+        $cnpj=$this->cnpj((string)($item['cnpj']??''));
+        if (!$this->validCnpj($cnpj) || $this->entityIdConflict($entityId,$cnpj)) {
+            wp_safe_redirect($this->url('entity_conflict')); exit;
+        }
+        // Manual administrative attestation. The modern API key cannot authenticate
+        // Corporacao/getByCnpj, and no available endpoint proves entity ID ownership.
+        // Never claim API verification of the CNPJ-to-ID relationship.
+        $confirmedCnpj=$this->cnpj($this->post('confirmed_cnpj'));
+        if ($confirmedCnpj !== $cnpj) {
+            wp_safe_redirect($this->url('entity_cnpj_confirmation')); exit;
+        }
+        $entityName=$this->post('entity_name');
+        if ($entityName === '') {
+            wp_safe_redirect($this->url('entity_name_required')); exit;
+        }
+        // Check again immediately before writing, including pre-existing user links.
+        if ($this->entityIdConflict($entityId,$cnpj)) { wp_safe_redirect($this->url('entity_conflict')); exit; }
+        update_user_meta($userId,'serben_entity_cnpj',$cnpj);
+        update_user_meta($userId,'serben_entity_id',$entityId);
+        update_user_meta($userId,'serben_entity_name',$entityName);
+        $records[$id]['entity_id']=$entityId;
+        $records[$id]['link_status']='linked';
+        $records[$id]['linked_by']=get_current_user_id();
+        $records[$id]['linked_at']=current_time('mysql',true);
+        $records[$id]['link_source']='admin_manual_attestation';
+        $records[$id]['linked_cnpj']=$cnpj;
+        $records[$id]['linked_entity_name']=$entityName;
+        $this->save($records);
+        wp_safe_redirect($this->url('entity_linked')); exit;
     }
     public function revoke(): void {
         $id=$this->post('request_id'); $this->assertAdmin('serben_access_revoke_', $id);
@@ -280,11 +364,16 @@ final class AccessManagement {
         $messages=[
             'created'=>'Convite registrado e aguardando aprovação.',
             'updated'=>'Solicitação atualizada.',
+            'recovered'=>'Aprovação interrompida recuperada; conta existente vinculada à solicitação original.',
             'revoked'=>'Acesso revogado e sessões existentes encerradas.',
             'restored'=>'Acesso reativado.',
             'resent'=>'Novo link para definir senha enviado.',
             'email_failed'=>'Usuário criado, mas não foi possível confirmar o envio do e-mail. Verifique a entrega e tente reenviar.',
             'email_exists'=>'Esse e-mail já possui uma conta WordPress. Confirme a titularidade antes de associá-la; nenhuma permissão adicional foi concedida.',
+            'entity_linked'=>'Entidade vinculada por conferência manual do administrador. Nenhuma verificação de ID foi feita pela API.',
+            'entity_cnpj_confirmation'=>'O CNPJ digitado para confirmação não corresponde ao da solicitação. Vínculo não realizado.',
+            'entity_name_required'=>'Informe a razão social conferida no cadastro SerBen.',
+            'entity_confirmation_required'=>'Informe o ID institucional e confirme a conferência manual na SerBen.',
             'entity_conflict'=>'Este ID institucional já está vinculado a outro CNPJ. Nenhum acesso foi criado.',
             'entity_unverified'=>'ID institucional não validado contra um vínculo existente do mesmo CNPJ. A aprovação não foi realizada. Deixe o ID vazio para criar uma conta sem acesso aos dados da entidade.',
             'partner_unlinked'=>'A aprovação exige exatamente um parceiro cadastrado no catálogo com este CNPJ. Confira em Gerenciar parceiros (inclusive rascunhos) e corrija ausências ou duplicidades antes de aprovar.',
@@ -301,7 +390,7 @@ final class AccessManagement {
         echo '<input type="hidden" name="action" value="serben_access_invite">';
         echo '<select name="access_type" aria-label="Tipo"><option value="partner">Parceiro</option><option value="entity">Entidade</option></select> ';
         echo '<input name="cnpj" placeholder="CNPJ" required> <input name="full_name" placeholder="Responsável" required> <input type="email" name="email" placeholder="E-mail" required> <button class="button button-primary">Criar convite</button></form>';
-        echo '<h2>Solicitações e convites</h2><p>Parceiro sem vínculo de catálogo e entidade sem ID institucional aprovado não terão acesso aos dados específicos desses registros. Para entidades, informe um ID somente após conferência na administração.</p>';
+        echo '<h2>Solicitações e convites</h2><p>Parceiro sem vínculo de catálogo e entidade sem ID institucional aprovado não terão acesso aos dados específicos desses registros. Para entidades, aprove sem ID e depois utilize &quot;Conferir manualmente e vincular&quot;. Consulte o cadastro administrativo da SerBen e confirme CNPJ, razão social e ID institucional. Não há validação automática por API.</p>';
         echo '<table class="widefat striped"><thead><tr><th>Origem / tipo</th><th>Responsável</th><th>E-mail</th><th>CNPJ</th><th>Status</th><th>Vínculo</th><th>Ações</th></tr></thead><tbody>';
         $records=array_slice(array_reverse($this->records(),true),0,100,true);
         foreach ($records as $id=>$item) {
@@ -325,6 +414,16 @@ final class AccessManagement {
                 echo '<input type="hidden" name="action" value="serben_access_decide"><input type="hidden" name="request_id" value="'.esc_attr($id).'">';
                 echo '<input type="hidden" name="decision" value="reject"><button class="button">Recusar</button></form>';
             } elseif ($status==='approved') {
+                if ($type==='entity' && ($item['link_status']??'')!=='linked') {
+                    echo '<form method="post" action="'.esc_url(admin_url('admin-post.php')).'" style="display:inline-block;margin:2px">';
+                    echo wp_nonce_field('serben_access_bind_entity_'.$id,'_wpnonce',true,false);
+                    echo '<input type="hidden" name="action" value="serben_access_bind_entity"><input type="hidden" name="request_id" value="'.esc_attr($id).'">';
+                    echo '<label>ID institucional <input type="number" min="1" required name="entity_id" style="width:105px"></label> ';
+                    echo '<label>Razão social conferida <input type="text" name="entity_name" maxlength="180" required></label> ';
+                    echo '<label>Redigite o CNPJ conferido <input type="text" name="confirmed_cnpj" maxlength="18" required></label> ';
+                    echo '<label><input type="checkbox" name="confirm_manual" value="1" required> Conferi pessoalmente o CNPJ, a razão social e o ID institucional no cadastro administrativo da SerBen</label> ';
+                    echo '<button type="submit" class="button button-primary">Conferir manualmente e vincular</button></form>';
+                }
                 echo $this->action($id,'revoke','Revogar');
                 echo $this->action($id,'resend','Reenviar senha');
                 if (!empty($item['user_id'])) { echo ' <a href="'.esc_url(get_edit_user_link((int)$item['user_id'])).'">Abrir usuário</a>'; }

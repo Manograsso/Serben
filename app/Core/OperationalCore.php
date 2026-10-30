@@ -96,6 +96,9 @@ final class OperationalCore {
   // Financial records must never be associated with a WordPress user ID by fallback.
   // The entity identifier must be explicitly provisioned by SerBen administration.
   $entity_linked=$entity_id>0;
+  if (!$entity_linked && !current_user_can('manage_options')) {
+   return '<section class="serben-operational serben-entity-portal"><h2>Vínculo institucional pendente</h2><p>Sua conta está aprovada, mas a vinculação da entidade ainda aguarda validação administrativa. Os dados restritos não estão disponíveis.</p></section>';
+  }
   $entity_name=(string)(get_user_meta($uid,'serben_entity_name',true) ?: $user->display_name);
   $tab=$module ?: (isset($_GET['serben_tab'])?sanitize_key(wp_unslash($_GET['serben_tab'])):'perfil');
   $tabs=['perfil'=>'Perfil da Entidade','associados'=>'Associados & Planos','conta'=>'Minha Conta','faturas'=>'Minhas Faturas','midia'=>'Peças Publicitárias & Mídia'];
