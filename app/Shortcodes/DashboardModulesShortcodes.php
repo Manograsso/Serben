@@ -180,7 +180,14 @@ final class DashboardModulesShortcodes
             && \SerbenConnect\Admin\AccessManagement::accountAllowed((int)$u->ID)
             && (int)get_user_meta((int)$u->ID,'serben_entity_id',true)>0;
     }
-    private function entityLoginMessage(): string{return '<div class="serben-message">Faça login como Entidade Emissora para visualizar.</div>';}
+    private function entityLoginMessage(): string{
+        $u=wp_get_current_user();
+        if($u->exists() && (bool)array_intersect(['serben_entidade','serben_entidade_diretoria','serben_entidade_secretaria','serben_entidade_atendente'],(array)$u->roles)
+            && \SerbenConnect\Admin\AccessManagement::accountAllowed((int)$u->ID)
+            && !(int)get_user_meta((int)$u->ID,'serben_entity_id',true))
+            return '<div class="serben-message">Conta aprovada. Vínculo institucional aguardando validação administrativa. Os dados da entidade permanecem indisponíveis.</div>';
+        return '<div class="serben-message">Faça login como Entidade Emissora para visualizar.</div>';
+    }
     private function partnerPlan(): string{return (string)(get_user_meta(get_current_user_id(),'serben_partner_plan_name',true)?:'Bume Start');}
     private function couponLimit(string $p): int {if(stripos($p,'pro')!==false||stripos($p,'crescimento')!==false)return -1;if(stripos($p,'impulso')!==false)return 2;return 0;}
     private function partnerWalletData(): array{$u=get_current_user_id();return ['brl'=>(float)get_user_meta($u,'serben_partner_wallet_brl',true),'cashbume'=>(float)get_user_meta($u,'serben_partner_wallet_cashbume',true),'bumes'=>(float)get_user_meta($u,'serben_partner_wallet_bumes',true)];}
