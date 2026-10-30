@@ -1,3 +1,13 @@
+## 2.2.0-rc1 — Consolidação candidata à homologação (30/10/2026)
+
+- Incorporado o código do **SerBen Clube de Benefícios 3.2.0** em `legacy-benefits/`, com inicialização condicionada à ausência da classe principal do plugin antigo.
+- Incluídos no pacote importador original CSV/XLSX, administração, categorias, filiais, importação de logos, templates, shortcodes, favoritos, AJAX e REST; **compatibilidade funcional ainda não validada em WordPress**.
+- Mantidos identificadores do catálogo: `serben_parceiro`, `serben_categoria` e `_serben_*`.
+- Inicialização da integração AWIN legada desativada para evitar duplicidade com o Connect; processamento financeiro segue fora do WordPress.
+- Restringida a inicialização de operações potencialmente destrutivas (exclusão em massa e migração automática de imagens). No importador original, atualização de parceiros existentes começa desmarcada.
+- Requisito de execução alinhado ao cabeçalho do plugin: **PHP 8.0+**.
+- README, `readme.txt`, changelogs e referência histórica do módulo incorporado revisados. **Não foram feitos testes end-to-end de WordPress, Elementor, importação ou APIs externas.**
+
 ## 2.1.6
 - Vinculação administrativa manual de entidades: confirmação de CNPJ, razão social e ID institucional sem chamada à API legada.
 - Registro de responsável, data e origem da validação; bloqueio de IDs associados a outros CNPJs.
@@ -8,7 +18,7 @@
 - ID institucional informado e confirmado manualmente; verificação de conflitos e registro de auditoria.
 - Painéis de entidade mostram estado de vínculo pendente sem revelar dados restritos.
 
-## 2.1.5
+## 2.1.4
 - Recuperação segura de aprovação parcial de entidades/parceiros.
 - Persistência do status antes do envio de e-mail.
 - Contas gerenciadas permanecem bloqueadas até aprovação.
