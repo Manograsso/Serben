@@ -1,3 +1,8 @@
+> **DOCUMENTAÇÃO HISTÓRICA DO PLUGIN INCORPORADO (SerBen Clube de Benefícios).**
+> Este README foi escrito para a instalação independente do plugin antigo e mantém seu histórico original, inclusive versões e instruções antigas. **Na distribuição Clube SerBen Connect 2.2.0-rc1, não execute essas instruções de instalação standalone nem ative o plugin antigo em paralelo com o módulo incorporado.** Consulte `../README.md` e `../INTEGRACAO-LEGADO-2.2.0-RC1.md` para o procedimento de homologação da fusão. Esta RC **não foi testada ponta a ponta**.
+
+---
+
 
 ## Versão 1.6.1
 
