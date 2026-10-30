@@ -2,7 +2,7 @@
 
 Plugin WordPress de integração do portal Clube SerBen com APIs SerBen, catálogo de parceiros, painéis de associados/parceiros/entidades, Elementor e AWIN.
 
-**Versão:** 2.1.3 · **WordPress:** 6.2+ · **PHP declarado:** 7.4+ · **Licença:** GPL-2.0-or-later
+**Versão:** 2.1.5 · **WordPress:** 6.2+ · **PHP declarado:** 7.4+ · **Licença:** GPL-2.0-or-later
 
 > **Estado do projeto:** módulos em evolução. Teste atualizações em homologação e mantenha backup. A integração depende da disponibilidade e dos dados retornados pelas APIs externas.
 
@@ -64,7 +64,7 @@ Consulte `docs/SHORTCODES.md` e os componentes do plugin para a lista completa e
 
 ## Alterações recentes
 
-### 2.1.3
+### 2.1.5
 - Melhoria das mensagens de retorno das solicitações de acesso, inclusive solicitação já pendente e limitação de tentativas.
 - Impedimento de consulta de portadores com CNPJ (a rota aceita CPF).
 - Orientação administrativa mais clara quando o CNPJ não encontra um único parceiro no catálogo.

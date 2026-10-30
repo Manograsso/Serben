@@ -2,12 +2,12 @@
 Contributors: manograsso
 Requires at least: 6.2
 Requires PHP: 7.4
-Stable tag: 2.1.3
+Stable tag: 2.1.5
 License: GPLv2 or later
 
 Portal operacional do Clube SerBen em WordPress: integrações SerBen, associados, parceiros, entidades, credenciamento, dashboards, Awin e Elementor.
 
-== Novidades 2.1.3 ==
+== Novidades 2.1.5 ==
 
 * Modelo híbrido de acesso: convites administrativos e solicitações públicas, com aprovação.
 * `[serben_access_request]`: solicitação pública; `[serben_partner_login]`: login por e-mail e senha WordPress.
@@ -91,7 +91,7 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 
 == Changelog ==
 
-= 2.1.3 =
+= 2.1.5 =
 * Mensagens de retorno de solicitações de acesso e tratamento de duplicidade/limitação.
 * Evita consulta de portadores com CNPJ; endpoint exige CPF.
 * Mensagens administrativas mais claras para ausência/duplicidade de parceiro por CNPJ.
