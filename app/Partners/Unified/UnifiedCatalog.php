@@ -12,6 +12,7 @@ final class UnifiedCatalog {
  public static function menu():void {add_submenu_page('serben-connect','Importação Connect','Importação Connect','manage_options','serben-connect-import',[__CLASS__,'page']);}
  public static function page():void {
   if(!current_user_can('manage_options'))return;
+  if(class_exists('Serben_Admin',false)){ echo '<div class="wrap"><h1>Importacao de parceiros</h1><p>O importador original do Clube de Beneficios esta incorporado ao Connect.</p><p><a class="button button-primary" href="'.esc_url(admin_url('edit.php?post_type=serben_parceiro&page=serben-import-excel')).'">Abrir importador original</a></p></div>'; return; }
   echo '<div class="wrap"><h1>Importação de parceiros — Clube SerBen Connect</h1><p>Importa planilhas CSV/XLSX usando a lógica de compatibilidade do Clube de Benefícios. Faça backup antes de importar. Os parceiros são identificados pelos dados da planilha e podem ser atualizados.</p>';
   if(isset($_GET['csc_result'])) { $data=get_transient('csc_import_result_'.get_current_user_id());if(is_array($data))echo '<div class="notice notice-info"><p>'.esc_html(wp_json_encode($data,JSON_UNESCAPED_UNICODE)).'</p></div>'; }
   echo '<form method="post" enctype="multipart/form-data" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="serben_connect_import">';wp_nonce_field('serben_connect_import');
