@@ -3,11 +3,11 @@
  * Plugin Name: Clube Serben Connect
  * Plugin URI: https://github.com/Manograsso/Serben
  * Description: Integração entre WordPress e API Clube Serben.
- * Version: 2.1.6
+ * Version: 2.2.0-rc1
  * Author: Pedro Manograsso
  * License: GPL-2.0-or-later
  * Text Domain: clube-serben-connect
- * Requires PHP: 7.4
+ * Requires PHP: 8.0
  */
 
 if (!defined('ABSPATH')) {
@@ -25,7 +25,7 @@ if (!function_exists('array_is_list')) {
     }
 }
 
-define('SERBEN_CONNECT_VERSION', '2.1.6');
+define('SERBEN_CONNECT_VERSION', '2.2.0-rc1');
 define('SERBEN_CONNECT_FILE', __FILE__);
 define('SERBEN_CONNECT_PATH', plugin_dir_path(__FILE__));
 define('SERBEN_CONNECT_URL', plugin_dir_url(__FILE__));
