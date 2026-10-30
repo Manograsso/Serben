@@ -1,105 +1,123 @@
-# Clube SerBen Connect
+# Clube SerBen Connect — 2.2.0-rc1
 
-Plugin WordPress de integração do portal Clube SerBen com APIs SerBen, catálogo de parceiros, painéis de associados/parceiros/entidades, Elementor e AWIN.
+**Versão candidata à homologação (RC1). Não homologada para produção.**
 
-**Versão:** 2.1.6 · **WordPress:** 6.2+ · **PHP declarado:** 7.4+ · **Licença:** GPL-2.0-or-later
+Plugin WordPress que reúne integrações com a API SerBen, componentes de associados, painéis de parceiros e entidades, Elementor, catálogo de benefícios e rastreamento AWIN. Esta distribuição incorpora, como módulo de compatibilidade, o código do **SerBen Clube de Benefícios 3.2.0**.
 
-> **Estado do projeto:** módulos em evolução. Teste atualizações em homologação e mantenha backup. A integração depende da disponibilidade e dos dados retornados pelas APIs externas.
-
-## Recursos
-
-- Consulta de dados de associados/portadores por **CPF** e componentes para exibir dados do associado, saldo, plano e contratos.
-- Catálogo de parceiros no WordPress, incluindo gestão manual, categorias, campos personalizados, importação e exportação CSV.
-- Componentes e shortcodes para Elementor e painéis operacionais de parceiros e entidades.
-- Integração AWIN para links rastreados, programas e consulta/sincronização de transações. **O WordPress não efetua crédito financeiro AWIN na SerBen**; esse processamento permanece sob responsabilidade do aplicativo SerBen.
-- Diagnósticos de integração, logs e configurações administrativas.
-- Acesso híbrido para parceiros e entidades: convite administrativo ou solicitação pública, com aprovação e conta WordPress.
-
-## Instalação e atualização
-
-1. Faça backup do banco de dados e dos arquivos do plugin.
-2. Em **Plugins → Adicionar plugin → Enviar plugin**, instale o ZIP da versão correspondente, substituindo a anterior quando solicitado.
-3. Confira as credenciais de integração SerBen (`x-api-key` e `identifier`) nas configurações do plugin, sem incluí-las no repositório.
-4. Execute os diagnósticos disponíveis e teste os shortcodes e os perfis de acesso em homologação.
-5. Se usar AWIN, confira as credenciais, os vínculos dos anunciantes e a configuração do rastreamento.
-
-## Gestão de parceiros
-
-No painel administrativo, use **Clube SerBen Connect → Gerenciar parceiros** para consultar, cadastrar e editar parceiros do catálogo local, ajustar status/categorias e **exportar CSV**. A gestão local **não atualiza automaticamente** os cadastros no aplicativo SerBen.
-
-## Primeiro acesso de parceiros e entidades (2.1.x)
-
-O plugin **não autentica usuários do aplicativo SerBen**: a API disponível não oferece rotas para validar as credenciais do usuário master nem suas permissões. A autenticação é feita pelo WordPress e os vínculos de empresa são controlados localmente.
-
-- `[serben_access_request]`: formulário público para solicitar acesso, sujeito à análise administrativa.
-- **Clube SerBen Connect → Gestão de acessos**: convites, solicitações, aprovação, recusa e revogação.
-- `[serben_partner_login]`: login por **e-mail e senha WordPress**. O primeiro acesso somente por CNPJ foi desativado.
-- A aprovação de **parceiros** exige **um único parceiro local** com CNPJ correspondente. Se o cadastro não existir ou houver duplicidade, a aprovação será bloqueada até regularização em **Gerenciar parceiros**.
-- Para **entidades**, um ID institucional só deve ser vinculado após comprovação administrativa de sua correspondência ao CNPJ. Uma conta sem vínculo institucional validado não deve acessar dados específicos da entidade.
-- A aprovação e o vínculo no WordPress **não criam usuário nem permissões no aplicativo SerBen**.
-
-**Segurança:** nunca conceda acesso a uma empresa apenas porque o solicitante conhece seu CNPJ. Confirme a representação da empresa antes de aprovar e teste a separação dos dados entre contas distintas.
-
-## APIs e identificação
-
-- Base da API de integração: `https://serben.conectar.site/api/integracao/`.
-- Portadores: `portadores/Portadores/getPortadorPorDocumento` recebe **CPF com 11 dígitos**, não CNPJ.
-- Contratos: `clube_beneficio/Contratos/listarContratosPorContratante` pode retornar lista vazia mesmo quando o cadastro do portador é localizado; isso não prova a existência ou ausência de um plano gratuito em outro módulo.
-- Algumas rotinas de fidelidade utilizam a API legada enquanto não houver endpoints novos equivalentes.
-- Chaves de API devem permanecer no servidor e ser ocultadas nos diagnósticos compartilhados.
-
-## Shortcodes de referência
-
-| Shortcode | Uso |
+| Requisito | Informação |
 | --- | --- |
-| `[serben_access_request]` | Solicitação pública de acesso |
-| `[serben_partner_login]` | Login de parceiro/entidade aprovado |
-| `[serben_plan_name]` | Nome do plano disponível nos dados do associado |
-| `[serben_current_plan]` | Plano obtido da consulta de contratos |
+| WordPress | 6.2 ou superior (declarado no `readme.txt`) |
+| PHP | **8.0 ou superior** (declarado no cabeçalho do plugin) |
+| Versão do Connect | **2.2.0-rc1** |
+| Módulo incorporado | SerBen Clube de Benefícios **3.2.0** |
+| Licença | GPL-2.0-or-later |
+
+> O pacote passou por verificações estáticas, mas **não foi homologado em uma instalação WordPress** com dados reais. A presença do código não comprova equivalência funcional. A versão RC não deve substituir o plugin antigo diretamente no ambiente de produção.
+
+## Funcionalidades do Connect
+
+- Consulta de dados de associados/portadores por CPF e componentes de saldos, planos e contratos conforme os dados disponíveis na API SerBen.
+- Gestão de parceiros, solicitações públicas, convites, aprovação administrativa e login de parceiros/entidades por conta WordPress.
+- Vínculo manual entre CNPJ e ID institucional de entidade, mediante conferência do administrador, sem consulta à API legada `Corporacao/getByCnpj`.
+- Painéis operacionais, componentes e shortcodes para páginas montadas com Elementor.
+- Integração AWIN para rastreamento, programas e sincronização de transações. **O WordPress não executa crédito financeiro AWIN na SerBen**; a aplicação SerBen é responsável por esse processo.
+- Diagnósticos e logs de integração.
+
+## Módulo incorporado de benefícios — RC1
+
+O código original do SerBen Clube de Benefícios 3.2.0 está incluído em `legacy-benefits/`, com integração de inicialização por `app/Partners/Unified/LegacyBenefits.php`. O módulo contém:
+
+- Tipos de conteúdo e taxonomia originais: `serben_parceiro`, `serben_categoria`; metadados `_serben_*`; tabela de filiais `{prefix}serben_filiais`.
+- Importação original de **CSV e XLSX**, exportação, importação de logos por ZIP, gestão de filiais e categorias.
+- Templates individuais e de arquivo do catálogo, filtros, favoritos, consultas AJAX e endpoints REST.
+- Recursos de imagens, mídias e ferramentas administrativas mantidos no pacote, com restrições descritas abaixo.
+
+**Convivência com o plugin antigo:** se a classe principal do SerBen Clube de Benefícios já estiver carregada, o módulo incorporado **não inicializa** para evitar conflito de classes. Portanto, não se pode testar os recursos incorporados simplesmente mantendo os dois módulos ativos. A desativação do antigo deve ser testada em **homologação**, não diretamente em produção.
+
+**AWIN:** a inicialização do módulo AWIN original foi desativada no código incorporado. O Connect continua sendo o mecanismo de rastreamento; não habilite duas rotinas AWIN em paralelo. A desativação do antigo não deve ser confundida com confirmação de equivalência de todos os fluxos.
+
+**Proteções da RC1:** o handler de exclusão em massa do plugin incorporado não é registrado; a migração automática de imagens não é executada; e o checkbox **“Atualizar parceiros existentes”** do importador original inicia desmarcado. A rotina de importação ainda grava dados de verdade quando enviada: **não existe uma prévia/dry-run validada nesta RC1**. A interface de manutenção histórica pode mencionar ações que foram desativadas na fusão.
+
+## Importação de parceiros CSV/XLSX
+
+1. Em uma **instalação de homologação com cópia do banco e ponto de restauração**, desative o plugin antigo e ative o Connect 2.2.0-rc1.
+2. Acesse **Clube SerBen Connect → Importação Connect** e, quando o módulo original estiver ativo, escolha **Abrir importador original**. A tela original está no menu do tipo de conteúdo Parceiros, em **Importar Excel**.
+3. Escolha um arquivo `.csv` ou `.xlsx`. **Arquivos `.xls` não são suportados.** CSV delimitado por ponto e vírgula está entre os formatos tratados pelo importador, mas o resultado depende dos cabeçalhos efetivos.
+4. Mantenha **“Atualizar parceiros existentes” desmarcado** no primeiro teste. Revise a opção de publicação.
+5. Execute o teste somente na base descartável de homologação. Confira total de parceiros, categorias, filiais, campos, imagens e duplicações antes de considerar a importação aprovada.
+
+O importador original reconhece modelos físicos, online, mistos e determinados relatórios administrativos. Para planilhas mistas, a lógica original também considera a presença de **Endereço** na classificação por linha; campos **Tipo** vazios e cabeçalhos fora do padrão exigem conferência. A planilha `serben-parceiros.csv` fornecida anteriormente ainda **não foi homologada por execução real no WordPress**.
+
+**Requisitos para XLSX:** o código tenta usar a extensão PHP `ZipArchive`; alternativamente, pode usar PhpSpreadsheet se as dependências estiverem instaladas. CSV não depende dessa biblioteca. Veja `legacy-benefits/README.md` para o mapeamento histórico de colunas, lembrando que se trata da documentação **do plugin original**, não de instruções de instalação do Connect.
+
+## Dados existentes e migração
+
+A RC1 reutiliza os identificadores do catálogo original; não há procedimento de migração destrutiva programado para converter todos os registros. **Isso não garante que a ativação ou uma importação sejam isentas de alterações no banco:** plugins WordPress podem criar tabelas/opções e importar ou atualizar posts. Sem backup, não execute migração ou reimportação em produção.
+
+Faça o ponto de restauração do banco pela hospedagem, além de backup dos arquivos, antes de qualquer teste de troca. Compare permissões, URLs públicas e páginas Elementor entre as duas instalações. O plugin original só poderá ser aposentado após homologação.
+
+## Shortcodes
+
+### Originais do módulo incorporado (disponíveis quando ele inicializa)
+
+| Shortcode | Finalidade |
+| --- | --- |
+| `[serben_parceiros]` | Lista de parceiros |
+| `[serben_online]` | Parceiros online |
+| `[serben_busca]` | Busca e filtros |
+| `[serben_categorias]` | Categorias |
+| `[serben_banner_parceiros]` | Banner do catálogo |
+| `[serben_credenciados]` | Vitrine de credenciados |
+| `[serben_credenciados_page]` | Página de credenciados |
+| `[serben_favoritos]` | Lista de favoritos |
+| `[serben_favorito_botao]` | Botão de favorito |
+
+### Do Connect
+
+| Shortcode | Finalidade |
+| --- | --- |
+| `[serben_connect_catalogo]` | Catálogo alternativo do Connect |
+| `[serben_connect_parceiro]` | Perfil alternativo de parceiro |
+| `[serben_access_request]` | Solicitação de acesso |
+| `[serben_partner_login]` | Login WordPress de parceiro ou entidade |
 | `[serben_partner_operational_dashboard]` | Painel operacional do parceiro |
 | `[serben_entity_operational_dashboard]` | Painel operacional da entidade |
-| `[serben_connect_catalogo]` | Catálogo de parceiros |
+| `[serben_plan_name]` | Nome do plano, se retornado pelos dados do associado |
+| `[serben_current_plan]` | Contrato/plano, conforme a API |
 
-Consulte `docs/SHORTCODES.md` e os componentes do plugin para a lista completa e os parâmetros disponíveis.
+O funcionamento dos shortcodes legados em páginas Elementor **ainda precisa ser testado na homologação**. Consulte `docs/SHORTCODES.md` e os arquivos-fonte para parâmetros e módulos adicionais.
 
-## Alterações recentes
+## Acessos e vinculação de entidades
 
-### 2.1.6
-- Melhoria das mensagens de retorno das solicitações de acesso, inclusive solicitação já pendente e limitação de tentativas.
-- Impedimento de consulta de portadores com CNPJ (a rota aceita CPF).
-- Orientação administrativa mais clara quando o CNPJ não encontra um único parceiro no catálogo.
+A autenticação de parceiros/entidades é local no WordPress, por **e-mail e senha**. A API disponível não autentica o usuário master do aplicativo SerBen nem transmite suas permissões. Aprovação de parceiro depende de correspondência local única do CNPJ; aprovação de entidade não concede acesso a dados institucionais sem vínculo validado.
 
-### 2.1.2
-- Compatibilidade de login para contas legadas não gerenciadas pelo novo fluxo.
-- Aprovação de parceiro condicionada a correspondência única por CNPJ e vínculo local concluído.
-- Proteções adicionais para o vínculo institucional de entidades.
-- Limitação inicial da listagem administrativa a 100 registros recentes; paginação completa pendente.
+Na **Gestão de acessos**, o administrador pode vincular manualmente uma entidade aprovada informando o **ID institucional**, a **razão social** e a confirmação de **CNPJ**, após consulta ao cadastro SerBen fora do plugin. O sistema não verifica automaticamente que o ID pertence ao CNPJ; essa responsabilidade é administrativa. A conta aprovada é preservada enquanto o vínculo estiver pendente.
 
-### 2.1.1
-- Integração e ajustes do módulo de gestão de acessos; veja `MIGRACAO-ACESSOS-2.1.1.md`.
+## APIs e AWIN
 
-### 2.1.0
-- Introdução do modelo híbrido de convites administrativos e solicitações públicas com aprovação.
-- Login WordPress por e-mail e senha para parceiros/entidades.
+- Base moderna: `https://serben.conectar.site/api/integracao/` com `x-api-key` e `identifier`.
+- A rota de portadores `portadores/Portadores/getPortadorPorDocumento` aceita **CPF de 11 dígitos**, não CNPJ.
+- Um contrato não retornado na rota de contratos não prova a ausência de eventual plano gratuito.
+- O Connect utiliza **CPF de 11 dígitos como ClickRef AWIN**, conforme o fluxo implementado desde 2.0.6. Atenção à LGPD: o dado pode constar em URLs e registros externos.
+- A API legada `Corporacao/getByCnpj` não é exigida para a vinculação manual de entidades.
+- Não publique credenciais de API, CPFs ou tokens nos logs compartilhados.
 
-### 2.0.9
-- Gestão manual e exportação CSV de parceiros do catálogo WordPress.
+## Critérios de homologação pendentes
 
-### 2.0.8
-- Correção de chamadas a método inexistente na consulta de contratos.
+- Testar ativação, desativação do plugin antigo, tabelas, rotas e ausência de conflitos fatais.
+- Importar `serben-parceiros.csv` em ambiente descartável e comparar registros criados/atualizados, campos, filiais e categorias.
+- Conferir arquivos XLSX e dependências da hospedagem.
+- Conferir templates, shortcodes Elementor, URLs, imagens e responsividade.
+- Testar AJAX, REST, favoritos, resgates e importação de logos.
+- Verificar AWIN, contas de parceiros, permissões e isolamento de dados das entidades.
+- Validar recuperação/rollback com a hospedagem.
 
-Para histórico anterior, consulte `CHANGELOG.md` e `docs/CHANGELOG.md`.
+**Status:** não homologado. Não há comprovação de testes completos com WordPress, planilhas reais ou APIs externas nesta entrega.
 
-## Limitações conhecidas
+## Histórico e referência
 
-- O plano do associado depende dos dados efetivamente retornados pela SerBen; ausência de contratos não deve gerar atribuição automática de plano.
-- O vínculo entre usuário master, entidade e permissões do aplicativo SerBen **não pode ser verificado automaticamente** pelas rotas disponíveis.
-- Gestão de acessos e painéis precisam de testes funcionais e de autorização em uma instalação WordPress real antes de uso amplo em produção.
-- A listagem de solicitações ainda não dispõe de paginação completa.
-
-## Repositório
-
-Projeto: https://github.com/Manograsso/Serben
-
-### Vinculação manual de entidades (2.1.6)
-Na Gestão de acessos, para uma entidade aprovada sem vínculo, consulte o cadastro administrativo da SerBen, informe o ID institucional, a razão social e redigite o CNPJ, confirmando a conferência. A operação não utiliza a API legada e **não verifica automaticamente a correspondência entre ID e CNPJ**. Somente administradores podem realizá-la; a ação registra data e responsável.
+- `CHANGELOG.md`: histórico geral do Connect.
+- `docs/CHANGELOG.md`: histórico técnico.
+- `INTEGRACAO-LEGADO-2.2.0-RC1.md`: notas da integração e procedimento de homologação.
+- `legacy-benefits/README.md`: documentação histórica do módulo incorporado; **não é um guia de instalação autônoma para esta distribuição**.
+- Projeto: https://github.com/Manograsso/Serben

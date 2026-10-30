@@ -1,13 +1,24 @@
 === Clube Serben Connect ===
 Contributors: manograsso
 Requires at least: 6.2
-Requires PHP: 7.4
-Stable tag: 2.1.6
+Requires PHP: 8.0
+Stable tag: 2.2.0-rc1
 License: GPLv2 or later
 
 Portal operacional do Clube SerBen em WordPress: integrações SerBen, associados, parceiros, entidades, credenciamento, dashboards, Awin e Elementor.
 
-== Novidades 2.1.6 ==
+== Versão candidata 2.2.0-rc1 — não homologada ==
+
+* Incorpora o código do SerBen Clube de Benefícios 3.2.0 como módulo de compatibilidade (`legacy-benefits/`).
+* Inclui o importador original CSV/XLSX, categorias, filiais, logos, templates, favoritos, shortcodes e endpoints AJAX/REST; a equivalência funcional em WordPress ainda não foi comprovada.
+* Mantém o CPT `serben_parceiro`, a taxonomia `serben_categoria` e metadados `_serben_*`.
+* Com o plugin antigo ativo, o módulo incorporado não inicia; a desativação do antigo deve ser testada em homologação.
+* A inicialização do AWIN antigo está desativada: o rastreamento permanece sob responsabilidade do Connect e o WordPress não credita cashback financeiro.
+* Na fusão, exclusão em massa e migração automática de imagens foram desativadas; atualização de parceiros existentes começa desmarcada no importador original.
+* Não há modo de simulação da importação homologado nesta RC1. Não importe dados em produção sem backup.
+* Requer PHP 8.0+; teste ativação, Elementor, importação, AJAX/REST, imagens, favoritos e acessos antes de substituir o plugin antigo.
+
+== Histórico 2.1.6 ==
 
 * Modelo híbrido de acesso: convites administrativos e solicitações públicas, com aprovação.
 * `[serben_access_request]`: solicitação pública; `[serben_partner_login]`: login por e-mail e senha WordPress.
@@ -89,7 +100,17 @@ A partir da versão 1.5.0, o plugin separa a API oficial de integração da API 
 * Fidelidade continua temporariamente na API legada, pois a Serben ainda não publicou rotas novas para pontos e cashback.
 * O cliente da nova API trata HTTP 429 e respeita informações de `Retry-After`, evitando retentativas agressivas.
 
+== Instalação / migração da RC1 ==
+
+Não instale esta candidata diretamente em produção para substituir o plugin antigo. Faça um ponto de restauração do banco na hospedagem, utilize uma instalação de homologação, desative o plugin antigo apenas nela e teste o importador original em Parceiros > Importar Excel com arquivos CSV/XLSX. O arquivo XLS não é suportado. Consulte README.md e INTEGRACAO-LEGADO-2.2.0-RC1.md para limitações, shortcodes, riscos de atualização de dados e plano de rollback.
+
 == Changelog ==
+
+= 2.2.0-rc1 =
+* Integração de compatibilidade com o código do SerBen Clube de Benefícios 3.2.0; RC ainda não homologada.
+* Importador original, catálogo e ferramentas legadas adicionados ao pacote, preservando identificadores.
+* AWIN legado não inicializado e alterações destrutivas automáticas restringidas.
+* Documentação consolidada e requisitos PHP alinhados à versão principal.
 
 = 2.1.6 =
 * Mensagens de retorno de solicitações de acesso e tratamento de duplicidade/limitação.
