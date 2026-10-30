@@ -105,6 +105,7 @@ final class Plugin
         (new AwinAdmin())->register();
         (new AwinCron())->register();
         \SerbenConnect\Partners\Unified\UnifiedCatalog::register();
+        \SerbenConnect\Partners\Unified\LegacyBenefits::register();
         (new AppShortcode())->register();
         (new RegisterSubmitShortcode())->register();
         (new RegistrationController())->register();
